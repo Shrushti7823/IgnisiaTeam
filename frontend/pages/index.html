@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClaimIQ — Enterprise Intelligent Insurance Claims Processing</title>
+  <meta name="description"
+    content="AI-powered insurance claim processing with explainable AI, real-time pipeline tracking, and fraud detection. Process claims in under 5 minutes." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eff6ff', 100: '#dbeafe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' },
+            accent: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
+            surface: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 800: '#1e293b', 900: '#0f172a' }
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .gradient-hero {
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 20%, #ddd6fe 40%, #fce8f4 60%, #ffe4e6 80%, #fef3c7 100%);
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .glow {
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+    }
+
+    .glow-green {
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+    }
+
+    .card-hover {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-hover:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+    }
+
+    .pulse-dot {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(1.2)
+      }
+    }
+
+    .float {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px)
+      }
+
+      50% {
+        transform: translateY(-12px)
+      }
+    }
+
+    .slide-up {
+      animation: slideUp 0.8s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes slideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+
+      from {
+        opacity: 0;
+        transform: translateY(30px)
+      }
+    }
+
+    .pipeline-glow {
+      background: linear-gradient(90deg, #818cf8, #34d399, #fbbf24, #f87171, #a78bfa, #818cf8);
+      background-size: 200%;
+      animation: gradientShift 4s linear infinite;
+    }
+
+    @keyframes gradientShift {
+      0% {
+        background-position: 0%
+      }
+
+      100% {
+        background-position: 200%
+      }
+    }
+
+    .counter {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mesh-bg {
+      background-image: radial-gradient(at 40% 20%, hsla(228, 80%, 80%, 0.2) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(189, 80%, 80%, 0.15) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(270, 80%, 85%, 0.15) 0px, transparent 50%);
+    }
+
+    .spectrum-text {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899, #f43f5e, #f97316, #eab308, #22c55e, #06b6d4);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200%;
+      animation: gradientShift 6s linear infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/30 text-gray-800 min-h-screen">
+
+  <!-- NAV -->
+  <nav class="fixed top-0 w-full z-50 glass border-b border-gray-200/50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-lg text-white glow">
+          ⚡</div>
+        <span class="text-xl font-extrabold tracking-tight text-gray-800">Claim<span
+            class="text-indigo-500">IQ</span></span>
+        <span
+          class="hidden sm:flex ml-3 text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-semibold border border-emerald-200 items-center gap-1.5">
+          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full pulse-dot"></span>Enterprise
+        </span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="about-ai.html" class="text-sm text-gray-500 hover:text-gray-800 transition font-medium">About AI</a>
+        <a href="login.html" class="text-sm text-gray-500 hover:text-gray-800 transition font-medium">Sign In</a>
+        <a href="register.html"
+          class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-500/25">Get
+          Started →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="gradient-hero pt-36 pb-28 px-6 relative overflow-hidden">
+    <div class="absolute inset-0 mesh-bg"></div>
+    <!-- Animated grid overlay -->
+    <div
+      class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.02%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]">
+    </div>
+    <div class="max-w-5xl mx-auto text-center relative z-10">
+      <div
+        class="inline-flex items-center gap-2 glass-strong rounded-full px-5 py-2.5 text-sm font-semibold mb-10 slide-up"
+        style="animation-delay:0.1s">
+        <span class="pulse-dot w-2 h-2 bg-accent-400 rounded-full"></span>
+        AI-Powered &middot; Explainable AI &middot; Real-Time Pipeline &middot; &lt;5 Minutes
+      </div>
+      <h1 class="text-5xl sm:text-7xl font-black tracking-tight leading-[1.05] mb-8 slide-up text-gray-800"
+        style="animation-delay:0.2s">
+        Insurance Claims<br />
+        <span class="spectrum-text">Processed
+          Instantly</span>
+      </h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed slide-up" style="animation-delay:0.3s">
+        ClaimIQ uses Explainable AI, a 12-rule fraud engine, and Straight-Through Processing
+        to settle claims in under 5 minutes — with full transparency into every decision.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center slide-up" style="animation-delay:0.4s">
+        <a href="register.html"
+          class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-10 py-4 rounded-2xl hover:from-indigo-400 hover:to-purple-500 transition text-lg shadow-2xl shadow-indigo-500/20">
+          File a Claim →
+        </a>
+        <a href="login.html"
+          class="glass-strong text-gray-700 font-semibold px-10 py-4 rounded-2xl hover:bg-white transition text-lg">
+          Admin Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="max-w-4xl mx-auto mt-24 grid grid-cols-2 sm:grid-cols-4 gap-4 relative z-10">
+      <div class="glass-strong rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl font-black text-gray-800 counter" data-target="5" data-suffix=" min">&lt;5 min</div>
+        <div class="text-gray-500 text-sm mt-1.5 font-medium">Avg. STP Time</div>
+      </div>
+      <div class="glass-strong rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl font-black text-emerald-600 counter" data-target="95" data-suffix="%">95%</div>
+        <div class="text-gray-500 text-sm mt-1.5 font-medium">Automation Rate</div>
+      </div>
+      <div class="glass-strong rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl font-black text-gray-800 counter" data-target="12">12</div>
+        <div class="text-gray-500 text-sm mt-1.5 font-medium">Fraud Rules + ML</div>
+      </div>
+      <div class="glass-strong rounded-2xl p-6 text-center card-hover">
+        <div class="text-3xl font-black text-amber-500 counter">100%</div>
+        <div class="text-gray-500 text-sm mt-1.5 font-medium">Explainable AI</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE PIPELINE DEMO -->
+  <section class="py-4 px-6 relative -mt-2">
+    <div class="max-w-4xl mx-auto">
+      <div class="pipeline-glow h-1 rounded-full opacity-60"></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="py-28 px-6 bg-white/60 mesh-bg">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-20">
+        <div class="text-indigo-500 text-sm font-bold uppercase tracking-widest mb-3">Real-Time Pipeline</div>
+        <h2 class="text-4xl sm:text-5xl font-black text-gray-800 mb-5">6-Stage Processing Pipeline</h2>
+        <p class="text-gray-500 text-lg max-w-2xl mx-auto">Every claim passes through 6 automated stages with real-time
+          tracking — you watch each stage complete live</p>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" id="stagesGrid"></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="py-28 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-20">
+        <div class="text-emerald-600 text-sm font-bold uppercase tracking-widest mb-3">Enterprise Features</div>
+        <h2 class="text-4xl sm:text-5xl font-black text-gray-800 mb-5">What Makes ClaimIQ Different</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl p-7 border border-gray-100 shadow-sm card-hover group">
+          <div
+            class="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform">
+            🧠</div>
+          <h3 class="text-lg font-bold mb-2 text-gray-800">Explainable AI</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Every decision comes with a detailed report: why it was
+            approved/rejected, which rules triggered, confidence scores, and risk breakdown.</p>
+        </div>
+        <div
+          class="bg-white rounded-2xl p-7 border border-indigo-200 card-hover group relative overflow-hidden shadow-sm">
+          <div
+            class="absolute top-4 right-4 text-xs bg-amber-100 text-amber-600 px-2.5 py-1 rounded-full border border-amber-200 font-bold">
+            ⭐ WOW</div>
+          <div
+            class="w-12 h-12 bg-brand-500/10 rounded-xl flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform">
+            🔄</div>
+          <h3 class="text-lg font-bold mb-2 text-gray-800">Real-Time Pipeline</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Watch your claim flow through 6 stages live. Each stage
+            updates in real-time with timestamps and status indicators.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-7 border border-gray-100 shadow-sm card-hover group">
+          <div
+            class="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform">
+            🚨</div>
+          <h3 class="text-lg font-bold mb-2 text-gray-800">12-Rule Fraud Engine</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Rule-based fraud scoring (0–100) with ML model. Detects
+            suspicious patterns, timing anomalies, and document inconsistencies.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-7 border border-gray-100 shadow-sm card-hover group">
+          <div
+            class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform">
+            🤖</div>
+          <h3 class="text-lg font-bold mb-2 text-gray-800">AI Copilot (Gemini)</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Powered by Google Gemini. Predicts claim outcomes, advises on
+            documents, and estimates settlements before you submit.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-7 border border-gray-100 shadow-sm card-hover group">
+          <div
+            class="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform">
+            📊</div>
+          <h3 class="text-lg font-bold mb-2 text-gray-800">Admin Dashboard</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Real-time KPIs, fraud heatmaps, STP rate tracking, audit
+            logs, and manual review workqueue in one enterprise panel.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-7 border border-gray-100 shadow-sm card-hover group">
+          <div
+            class="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center text-2xl mb-5 group-hover:scale-110 transition-transform">
+            📜</div>
+          <h3 class="text-lg font-bold mb-2 text-gray-800">Full Audit Trail</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">Every pipeline step logged with timestamps, durations, and
+            actions. Complete regulatory compliance and transparency.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO SCENARIOS -->
+  <section class="py-28 px-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <div class="text-indigo-500 text-sm font-bold uppercase tracking-widest mb-3">Live Demo</div>
+        <h2 class="text-4xl font-black text-gray-800 mb-5">3 Pre-Built Scenarios</h2>
+        <p class="text-gray-500 text-lg">Sign in as a demo user and see each scenario play out</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl p-6 border border-green-500/20 card-hover">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+            <span class="text-green-400 font-bold text-sm uppercase tracking-wide">Clean</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2">Auto-Approved ✅</h3>
+          <p class="text-gray-500 text-sm mb-4">$1,200 auto claim. Low fraud score (8/100). All gates pass.
+            Auto-approved via STP in under 5 minutes.</p>
+          <div class="text-xs text-gray-500">Login: john@demo.com / Demo@123</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-yellow-500/20 card-hover">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+            <span class="text-yellow-400 font-bold text-sm uppercase tracking-wide">Suspicious</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2">Manual Review ⚠️</h3>
+          <p class="text-gray-500 text-sm mb-4">$2,800 travel claim. Prior fraud flag + high amount. Fraud score 75/100.
+            Sent to adjuster queue.</p>
+          <div class="text-xs text-gray-500">Login: rahul@demo.com / Demo@123</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 border border-red-500/20 card-hover">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+            <span class="text-red-400 font-bold text-sm uppercase tracking-wide">Fraudulent</span>
+          </div>
+          <h3 class="font-bold text-lg mb-2">Rejected ❌</h3>
+          <p class="text-gray-500 text-sm mb-4">$4,900 claim near policy limit. 6 fraud rules triggered. Score 95/100.
+            Auto-rejected with full AI explanation.</p>
+          <div class="text-xs text-gray-500">Login: amit@demo.com / Demo@123</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 px-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative overflow-hidden">
+    <div class="absolute inset-0 mesh-bg"></div>
+    <div class="max-w-3xl mx-auto text-center relative z-10">
+      <h2 class="text-4xl sm:text-5xl font-black text-white mb-6">Ready to Process Your First Claim?</h2>
+      <p class="text-white/70 text-lg mb-10">Submit a claim and watch the 6-stage AI pipeline process it in real time.
+      </p>
+      <a href="register.html"
+        class="inline-block bg-white text-indigo-600 font-bold px-12 py-4 rounded-2xl hover:bg-indigo-50 transition text-lg shadow-2xl">
+        Start Free Demo →
+      </a>
+    </div>
+  </section>
+
+  <footer class="bg-white border-t border-gray-100 py-10 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-sm text-white">
+          ⚡</div>
+        <span class="font-bold text-gray-800">Claim<span class="text-indigo-500">IQ</span></span>
+        <span class="text-gray-400 text-sm ml-2">Enterprise Edition v2.0</span>
+      </div>
+      <div class="text-gray-400 text-sm">FastAPI · MySQL · Tailwind CSS · Google Gemini · Chart.js · <a
+          href="about-ai.html" class="text-indigo-500 hover:underline">About Our AI</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // Render pipeline stages
+    const stages = [
+      { n: '1', icon: '📋', title: 'Submitted', desc: 'Claim received & queued', color: 'blue' },
+      { n: '2', icon: '📄', title: 'Doc Verify', desc: 'OCR + completeness check', color: 'cyan' },
+      { n: '3', icon: '🔍', title: 'Fraud Check', desc: '12 rules + ML scoring', color: 'orange' },
+      { n: '4', icon: '📊', title: 'Risk Score', desc: 'Settlement calculation', color: 'purple' },
+      { n: '5', icon: '⚖️', title: 'Decision', desc: 'Auto/manual/reject', color: 'yellow' },
+      { n: '6', icon: '💸', title: 'Settlement', desc: 'Payout orchestration', color: 'green' },
+    ];
+    const grid = document.getElementById('stagesGrid');
+    stages.forEach((s, i) => {
+      const el = document.createElement('div');
+      el.className = 'bg-white rounded-2xl p-5 border border-gray-100 card-hover text-center float shadow-sm';
+      el.style.animationDelay = `${i * 0.5}s`;
+      el.innerHTML = `
+    <div class="w-12 h-12 bg-${s.color}-100 rounded-xl flex items-center justify-center mx-auto mb-3 text-2xl">${s.icon}</div>
+    <div class="text-xs font-black text-indigo-500 mb-1 uppercase tracking-widest">Stage ${s.n}</div>
+    <div class="font-bold text-gray-800 mb-1.5 text-sm">${s.title}</div>
+    <div class="text-gray-400 text-xs leading-relaxed">${s.desc}</div>
+  `;
+      grid.appendChild(el);
+    });
+  </script>
+</body>
+
+</html>
