@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — ClaimIQ</title>
+  <meta name="description" content="Register for ClaimIQ — AI-powered insurance claims processing with full transparency." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eff6ff', 100: '#dbeafe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 900: '#1e3a8a' },
+            accent: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
+            surface: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 800: '#1e293b', 900: '#0f172a' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .gradient-hero {
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 20%, #ddd6fe 40%, #fce8f4 60%, #ffe4e6 80%, #fef3c7 100%);
+    }
+
+    .mesh-bg {
+      background-image: radial-gradient(at 40% 20%, hsla(228, 80%, 80%, 0.2) 0px, transparent 50%),
+        radial-gradient(at 80% 0%, hsla(189, 80%, 80%, 0.15) 0px, transparent 50%),
+        radial-gradient(at 0% 50%, hsla(270, 80%, 85%, 0.15) 0px, transparent 50%);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-focus:focus {
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .type-card {
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .type-card:hover {
+      border-color: #6366f1;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
+    .type-card.selected {
+      border-color: #6366f1;
+      background: linear-gradient(135deg, #eef2ff, #fce8f4);
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .type-card.selected .type-label {
+      color: #4f46e5;
+      font-weight: 700;
+    }
+
+    .shake {
+      animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body class="gradient-hero min-h-screen flex items-center justify-center mesh-bg px-6 py-12">
+
+  <div class="w-full max-w-lg fade-in">
+
+    <!-- LOGO -->
+    <div class="text-center mb-10">
+      <a href="/" class="inline-flex items-center gap-3 mb-6">
+        <div
+          class="w-11 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+          ⚡
+        </div>
+        <span class="text-2xl font-extrabold text-gray-800">
+          Claim<span class="text-indigo-500">IQ</span>
+        </span>
+      </a>
+
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">Create your account</h1>
+      <p class="text-gray-500 text-sm">Register as a policyholder to submit and track claims</p>
+    </div>
+
+    <!-- FORM -->
+    <div class="glass-strong rounded-3xl p-8">
+
+      <div id="regError" class="hidden bg-red-100 border border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm mb-6">
+      </div>
+      <div id="regSuccess"
+        class="hidden bg-green-100 border border-green-300 text-green-600 rounded-xl px-4 py-3 text-sm mb-6"></div>
+
+      <div class="space-y-5">
+
+        <!-- Name & Phone -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-semibold text-gray-600 mb-2 block">Full Name *</label>
+            <input id="fullName" type="text" placeholder="John Doe"
+              class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500 input-focus transition" />
+          </div>
+
+          <div>
+            <label class="text-sm font-semibold text-gray-600 mb-2 block">Phone</label>
+            <input id="phone" type="tel" placeholder="+91-XXXXX"
+              class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500 input-focus transition" />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="text-sm font-semibold text-gray-600 mb-2 block">Email *</label>
+          <input id="email" type="email" placeholder="you@company.com"
+            class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500 input-focus transition" />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="text-sm font-semibold text-gray-600 mb-2 block">Password *</label>
+          <input id="password" type="password" placeholder="Min 6 characters"
+            class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500 input-focus transition" />
+          <div id="passwordStrength" class="mt-1.5 text-xs text-gray-400"></div>
+        </div>
+
+        <!-- INSURANCE / POLICY TYPE -->
+        <div>
+          <label class="text-sm font-semibold text-gray-600 mb-3 block">Insurance Type *</label>
+          <p class="text-xs text-gray-400 mb-3">Select the type of insurance policy you hold</p>
+
+          <div class="grid grid-cols-4 gap-3" id="policyTypeGrid">
+            <div class="type-card selected bg-white rounded-xl p-3 border border-gray-200 text-center"
+              onclick="selectType(this)" data-type="auto">
+              <div class="text-2xl mb-1">🚗</div>
+              <div class="type-label text-xs font-semibold text-indigo-600">Auto</div>
+            </div>
+            <div class="type-card bg-white rounded-xl p-3 border border-gray-200 text-center"
+              onclick="selectType(this)" data-type="health">
+              <div class="text-2xl mb-1">🏥</div>
+              <div class="type-label text-xs font-medium text-gray-600">Health</div>
+            </div>
+            <div class="type-card bg-white rounded-xl p-3 border border-gray-200 text-center"
+              onclick="selectType(this)" data-type="travel">
+              <div class="text-2xl mb-1">✈️</div>
+              <div class="type-label text-xs font-medium text-gray-600">Travel</div>
+            </div>
+            <div class="type-card bg-white rounded-xl p-3 border border-gray-200 text-center"
+              onclick="selectType(this)" data-type="property">
+              <div class="text-2xl mb-1">🏠</div>
+              <div class="type-label text-xs font-medium text-gray-600">Property</div>
+            </div>
+          </div>
+
+          <!-- Visual indicator showing selected type -->
+          <div id="selectedTypeIndicator" class="mt-2 text-xs text-indigo-600 font-medium">
+            ✅ Selected: <strong>Auto Insurance</strong>
+          </div>
+        </div>
+
+        <!-- Coverage Limit -->
+        <div>
+          <label class="text-sm font-semibold text-gray-600 mb-2 block">Coverage Limit ($)</label>
+          <input id="policyLimit" type="number" value="10000" min="1000" step="1000"
+            class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:outline-none focus:border-indigo-500 input-focus transition" />
+          <div class="mt-1.5 text-xs text-gray-400">Maximum amount your policy covers per claim</div>
+        </div>
+
+        <!-- Submit Button -->
+        <button id="regBtn" onclick="doRegister()"
+          class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition transform hover:scale-[1.01] active:scale-[0.99]">
+          Create Account →
+        </button>
+      </div>
+
+      <div class="mt-6 text-center text-sm text-gray-500">
+        Already have an account?
+        <a href="login.html" class="text-indigo-500 font-semibold hover:underline">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:8000';
+    let selectedType = 'auto';
+
+    const TYPE_LABELS = {
+      auto: 'Auto Insurance',
+      health: 'Health Insurance',
+      travel: 'Travel Insurance',
+      property: 'Property Insurance'
+    };
+
+    /**
+     * Handle insurance type card selection
+     */
+    function selectType(el) {
+      // Remove selected state from all cards
+      document.querySelectorAll('.type-card').forEach(card => {
+        card.classList.remove('selected');
+        card.querySelector('.type-label').className = 'type-label text-xs font-medium text-gray-600';
+      });
+
+      // Add selected state to clicked card
+      el.classList.add('selected');
+      el.querySelector('.type-label').className = 'type-label text-xs font-semibold text-indigo-600';
+
+      // Update the selected type variable
+      selectedType = el.dataset.type;
+
+      // Update visual indicator
+      const indicator = document.getElementById('selectedTypeIndicator');
+      indicator.innerHTML = `✅ Selected: <strong>${TYPE_LABELS[selectedType] || selectedType}</strong>`;
+
+      console.log('Insurance type selected:', selectedType);
+    }
+
+    /**
+     * Password strength indicator
+     */
+    document.getElementById('password').addEventListener('input', function () {
+      const pwd = this.value;
+      const el = document.getElementById('passwordStrength');
+      if (!pwd) { el.textContent = ''; return; }
+      if (pwd.length < 6) {
+        el.innerHTML = '<span class="text-red-500">⚠ Too short — minimum 6 characters</span>';
+      } else if (pwd.length < 8) {
+        el.innerHTML = '<span class="text-amber-500">● Acceptable</span>';
+      } else {
+        el.innerHTML = '<span class="text-green-600">● Strong password</span>';
+      }
+    });
+
+    /**
+     * Register a new user
+     */
+    async function doRegister() {
+      const name = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const phone = document.getElementById('phone').value.trim();
+      const limit = parseFloat(document.getElementById('policyLimit').value) || 10000;
+      const errBox = document.getElementById('regError');
+      const sucBox = document.getElementById('regSuccess');
+      const btn = document.getElementById('regBtn');
+
+      errBox.classList.add('hidden');
+      sucBox.classList.add('hidden');
+
+      // Validation
+      if (!name || !email || !password) {
+        errBox.textContent = 'Please fill in all required fields (name, email, password)';
+        errBox.classList.remove('hidden');
+        errBox.classList.add('shake');
+        setTimeout(() => errBox.classList.remove('shake'), 600);
+        return;
+      }
+
+      if (password.length < 6) {
+        errBox.textContent = 'Password must be at least 6 characters';
+        errBox.classList.remove('hidden');
+        errBox.classList.add('shake');
+        setTimeout(() => errBox.classList.remove('shake'), 600);
+        return;
+      }
+
+      // Email format check
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errBox.textContent = 'Please enter a valid email address';
+        errBox.classList.remove('hidden');
+        errBox.classList.add('shake');
+        setTimeout(() => errBox.classList.remove('shake'), 600);
+        return;
+      }
+
+      if (!selectedType) {
+        errBox.textContent = 'Please select an insurance type';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.textContent = 'Creating account...';
+      btn.disabled = true;
+      btn.classList.add('opacity-70');
+
+      const today = new Date();
+      const threeYearsLater = new Date(today);
+      threeYearsLater.setFullYear(threeYearsLater.getFullYear() + 3);
+
+      const payload = {
+        full_name: name,
+        email: email,
+        password: password,
+        phone: phone || null,
+        policy_type: selectedType,
+        policy_limit: limit,
+        policy_start: today.toISOString().split('T')[0],
+        policy_end: threeYearsLater.toISOString().split('T')[0],
+      };
+
+      console.log('Registering with payload:', JSON.stringify(payload, null, 2));
+
+      try {
+        const res = await fetch(`${API}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        console.log('Registration response:', res.status, data);
+
+        if (!res.ok) {
+          errBox.textContent = data.detail || 'Registration failed. Please try again.';
+          errBox.classList.remove('hidden');
+          errBox.classList.add('shake');
+          setTimeout(() => errBox.classList.remove('shake'), 600);
+          btn.textContent = 'Create Account →';
+          btn.disabled = false;
+          btn.classList.remove('opacity-70');
+          return;
+        }
+
+        // Success!
+        sucBox.innerHTML = '✅ Account created successfully! Redirecting to login...';
+        sucBox.classList.remove('hidden');
+        btn.textContent = '✅ Success!';
+
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+
+      } catch (e) {
+        console.error('Registration error:', e);
+        errBox.textContent = 'Cannot connect to server — is the backend running on port 8000?';
+        errBox.classList.remove('hidden');
+        btn.textContent = 'Create Account →';
+        btn.disabled = false;
+        btn.classList.remove('opacity-70');
+      }
+    }
+
+    // Allow Enter key to submit from password field
+    document.getElementById('password').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') doRegister();
+    });
+  </script>
+</body>
+
+</html>
