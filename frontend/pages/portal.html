@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Portal — ClaimIQ Enterprise</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    * {
+      font-family: 'Inter', sans-serif
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 50%, #e0e7ff 100%);
+      border-right: 1px solid #e2e8f0;
+    }
+
+    .status-submitted {
+      background: #eff6ff;
+      color: #2563eb;
+      border-color: #bfdbfe
+    }
+
+    .status-approved {
+      background: #ecfdf5;
+      color: #059669;
+      border-color: #a7f3d0
+    }
+
+    .status-rejected {
+      background: #fef2f2;
+      color: #dc2626;
+      border-color: #fecaca
+    }
+
+    .status-manual_review {
+      background: #fffbeb;
+      color: #d97706;
+      border-color: #fde68a
+    }
+
+    .status-completed {
+      background: #ecfdf5;
+      color: #059669;
+      border-color: #a7f3d0
+    }
+
+    .fade-in {
+      animation: fadeIn .5s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .typing-dot {
+      animation: typing 1.4s infinite
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: .2s
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: .4s
+    }
+
+    @keyframes typing {
+
+      0%,
+      100% {
+        opacity: .3
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .modal-overlay {
+      background: rgba(0, 0, 0, .3);
+      backdrop-filter: blur(8px)
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px
+    }
+
+    @keyframes stagePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, .4)
+      }
+
+      50% {
+        box-shadow: 0 0 0 12px rgba(59, 130, 246, 0)
+      }
+    }
+
+    @keyframes progressFill {
+      from {
+        width: 0
+      }
+
+      to {
+        width: 100%
+      }
+    }
+
+    .pipeline-connector {
+      height: 3px;
+      background: #e2e8f0;
+      position: relative;
+      flex: 1
+    }
+
+    .pipeline-connector .fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      border-radius: 2px;
+      transition: width .8s ease
+    }
+
+    .stage-node {
+      transition: all .5s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    .stage-node.active .node-circle {
+      animation: stagePulse 1.5s infinite;
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      border-color: #3b82f6
+    }
+
+    .stage-node.completed .node-circle {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      border-color: #10b981
+    }
+
+    .node-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      transition: all .5s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06)
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 via-indigo-50/20 to-purple-50/20 text-gray-800 flex min-h-screen">
+  <aside class="sidebar w-64 min-h-screen flex flex-col fixed left-0 top-0 z-40">
+    <div class="p-6 border-b border-gray-200/60">
+      <div class="flex items-center gap-2">
+        <div
+          class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
+          ⚡</div>
+        <span class="font-extrabold text-lg text-gray-800">Claim<span class="text-indigo-500">IQ</span></span>
+      </div>
+      <div class="mt-5 bg-white/70 rounded-xl p-3.5 border border-gray-200/60 shadow-sm">
+        <div id="userName" class="font-bold text-sm text-gray-800">Loading...</div>
+        <div id="userPolicy" class="text-gray-500 text-xs mt-0.5"></div>
+        <div class="mt-2.5 flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span><span
+            class="text-xs text-emerald-600 font-medium">Active Policy</span></div>
+      </div>
+    </div>
+    <nav class="flex-1 p-4 space-y-1">
+      <button onclick="showSection('overview')"
+        class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-indigo-50 transition bg-indigo-50 text-indigo-700"><span>🏠</span>
+        Overview</button>
+      <button onclick="showSection('submit')"
+        class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-indigo-50 transition text-gray-600"><span>📋</span>
+        Submit Claim</button>
+      <button onclick="showSection('claims')"
+        class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-indigo-50 transition text-gray-600"><span>📂</span>
+        My Claims</button>
+      <button onclick="showSection('copilot')"
+        class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 hover:bg-indigo-50 transition text-gray-600"><span>🤖</span>
+        AI Copilot
+        <span
+          class="ml-auto bg-purple-100 text-purple-600 text-xs px-2 py-0.5 rounded-full border border-purple-200 font-bold">Gemini</span>
+      </button>
+    </nav>
+    <div class="p-4 border-t border-gray-200/60">
+      <button onclick="logout()"
+        class="w-full text-left px-4 py-2.5 rounded-xl text-sm text-gray-500 hover:text-gray-800 hover:bg-red-50 transition flex items-center gap-2"><span>🚪</span>
+        Logout</button>
+    </div>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8 min-h-screen">
+    <!-- OVERVIEW -->
+    <section id="sec-overview" class="fade-in">
+      <h1 class="text-2xl font-bold mb-1">Welcome back 👋</h1>
+      <p class="text-gray-400 mb-8">Here's your insurance overview</p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <div class="text-gray-500 text-xs uppercase tracking-widest mb-2 font-semibold">Total Claims</div>
+          <div id="statTotal" class="text-3xl font-black text-gray-800">–</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <div class="text-gray-500 text-xs uppercase tracking-widest mb-2 font-semibold">Approved</div>
+          <div id="statApproved" class="text-3xl font-black text-emerald-600">–</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <div class="text-gray-500 text-xs uppercase tracking-widest mb-2 font-semibold">Pending</div>
+          <div id="statPending" class="text-3xl font-black text-amber-500">–</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <div class="text-gray-500 text-xs uppercase tracking-widest mb-2 font-semibold">Total Settled</div>
+          <div id="statAmount" class="text-3xl font-black text-indigo-600">–</div>
+        </div>
+      </div>
+      <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 border border-indigo-400/30 mb-8 shadow-lg shadow-indigo-500/15">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-2">Insurance Policy</div>
+            <div id="policyNum" class="text-2xl font-bold mb-1 text-white">–</div>
+            <div id="policyType" class="text-indigo-200/70 text-sm capitalize"></div>
+          </div>
+          <div class="text-right">
+            <div class="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-2">Coverage Limit</div>
+            <div id="policyLimit" class="text-2xl font-bold text-white">–</div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+        <h3 class="font-bold mb-4 text-gray-800">Recent Claims</h3>
+        <div id="recentClaims" class="space-y-3">
+          <div class="text-gray-500 text-sm">Loading...</div>
+        </div>
+        <button onclick="showSection('submit')"
+          class="mt-4 w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20">+
+          File New Claim</button>
+      </div>
+    </section>
+
+    <!-- SUBMIT CLAIM -->
+    <section id="sec-submit" class="hidden fade-in">
+      <h1 class="text-2xl font-bold mb-1 text-gray-800">Submit a Claim</h1>
+      <p class="text-gray-500 mb-8">Fill in the details — our AI pipeline will process it in real time</p>
+      <div class="flex items-center gap-3 mb-8">
+        <div id="step1ind" class="flex items-center gap-2">
+          <div
+            class="step-circle w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-blue-500/30">
+            1</div><span class="step-label text-sm font-semibold text-gray-800">Details</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-gray-300 rounded"></div>
+        <div id="step2ind" class="flex items-center gap-2">
+          <div
+            class="step-circle w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">2
+          </div><span class="step-label text-sm text-gray-400">Documents</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-gray-300 rounded"></div>
+        <div id="step3ind" class="flex items-center gap-2">
+          <div
+            class="step-circle w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">3
+          </div><span class="step-label text-sm text-gray-400">AI Pipeline</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Form -->
+      <div id="claimForm" class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+        <div id="formError"
+          class="hidden bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-600 text-sm mb-5"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div><label class="block text-sm font-semibold text-gray-700 mb-2">Claim Type *</label>
+            <select id="claimType" onchange="updateRequiredDocsPreview()"
+              class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 focus:outline-none focus:border-blue-500 transition">
+              <option value="">Select claim type</option>
+              <option value="auto">🚗 Auto / Vehicle</option>
+              <option value="health">🏥 Health / Medical</option>
+              <option value="travel">✈️ Travel</option>
+              <option value="property">🏠 Property</option>
+            </select>
+          </div>
+          <div><label class="block text-sm font-semibold text-gray-700 mb-2">Incident Date *</label><input
+              id="incidentDate" type="date"
+              class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 focus:outline-none focus:border-blue-500 transition" />
+          </div>
+          <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-2">Claim Amount (USD)
+              *</label><input id="claimAmount" type="number" min="1" placeholder="e.g. 1500"
+              oninput="updateAmountIndicator()"
+              class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition" />
+            <div id="amountIndicator" class="mt-2 text-xs text-gray-500">Claims up to $5,000 are eligible for automatic
+              STP processing</div>
+          </div>
+          <div class="md:col-span-2"><label class="block text-sm font-semibold text-gray-700 mb-2">Incident Description
+              *</label><textarea id="incidentDesc" rows="3" placeholder="Describe what happened in detail..."
+              class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition resize-none"></textarea>
+          </div>
+        </div>
+        <!-- Required docs preview -->
+        <div id="requiredDocsPreview" class="hidden mt-5 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">📋 Documents You'll Need</div>
+          <div id="requiredDocsList" class="flex flex-wrap gap-2"></div>
+        </div>
+        <button onclick="submitClaimStep1()"
+          class="mt-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold px-8 py-3.5 rounded-xl transition w-full shadow-lg shadow-blue-500/20">Continue
+          to Documents →</button>
+      </div>
+
+      <!-- Step 2: Upload -->
+      <div id="uploadStep" class="hidden bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+        <h3 class="font-bold mb-2 text-gray-800">Upload Supporting Documents</h3>
+        <p class="text-gray-500 text-sm mb-4">Upload each required document below. Our AI will verify and classify the document content automatically.</p>
+        <!-- Per-document upload slots -->
+        <div id="docUploadSlots" class="space-y-3 mb-5"></div>
+        <!-- Additional (optional) document upload -->
+        <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-5">
+          <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">📎 Additional Documents (Optional)</div>
+          <div class="flex items-center gap-3">
+            <input id="extraDocFile" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="previewExtraFile()" />
+            <button onclick="document.getElementById('extraDocFile').click()"
+              class="bg-white hover:bg-gray-100 text-gray-700 text-sm font-semibold px-4 py-2 rounded-lg transition border border-gray-200">Choose File</button>
+            <div id="extraFilePreview" class="text-sm text-blue-600 font-medium hidden"></div>
+            <button onclick="uploadExtraDoc()" id="extraUploadBtn"
+              class="ml-auto bg-gray-600 hover:bg-gray-500 text-white text-sm font-bold px-5 py-2 rounded-lg transition disabled:opacity-40"
+              disabled>Upload</button>
+          </div>
+          <p class="text-gray-400 text-xs mt-2">AI will auto-detect this document's type from its content</p>
+        </div>
+        <!-- Uploaded docs list with OCR results -->
+        <div id="uploadedDocs" class="space-y-2 mb-5"></div>
+        <!-- Warning if missing required docs -->
+        <div id="missingDocsWarn"
+          class="hidden bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-amber-700 text-sm mb-4">
+          ⚠️ Some required documents are missing. This may result in <strong>manual review</strong> instead of
+          auto-approval.</div>
+        <button onclick="submitForProcessing()"
+          class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/20">Submit
+          for AI Processing →</button>
+      </div>
+
+      <!-- Step 3: Pipeline Visualization -->
+      <div id="processingStep" class="hidden">
+        <div id="pipelineViz" class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+          <div class="text-center mb-10">
+            <h3 class="text-xl font-bold mb-2 text-gray-800">🔄 AI Pipeline Processing</h3>
+            <p class="text-gray-500 text-sm">Watch each stage complete in real-time</p>
+          </div>
+          <!-- Premium Pipeline Stages -->
+          <div id="pipelineStages" class="flex items-center justify-between mb-6 px-2"></div>
+          <!-- Stage Detail Card - shows what AI is doing at each stage -->
+          <div id="stageDetailCard" class="bg-gray-50 rounded-xl border border-gray-200 p-5 mb-4 min-h-[120px]">
+            <div class="text-gray-500 text-sm text-center">Waiting for pipeline to start...</div>
+          </div>
+          <!-- Pipeline Log -->
+          <div class="bg-gray-50 rounded-xl border border-gray-200 p-4">
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Processing Log</div>
+            <div id="pipelineLog" class="space-y-2 max-h-48 overflow-y-auto"></div>
+          </div>
+        </div>
+        <div id="resultBox" class="hidden mt-6"></div>
+      </div>
+    </section>
+
+    <!-- MY CLAIMS -->
+    <section id="sec-claims" class="hidden fade-in">
+      <h1 class="text-2xl font-bold mb-1 text-gray-800">My Claims</h1>
+      <p class="text-gray-500 mb-6">Track all your submitted insurance claims</p>
+      <div id="claimsList" class="space-y-4">
+        <div class="text-gray-500 text-sm">Loading...</div>
+      </div>
+    </section>
+
+    <!-- COPILOT -->
+    <section id="sec-copilot" class="hidden fade-in">
+      <h1 class="text-2xl font-bold mb-1 text-gray-800">🤖 ClaimIQ Copilot</h1>
+      <p class="text-gray-500 mb-6">AI assistant powered by Google Gemini — predicts outcomes before you submit</p>
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden"
+        style="height:560px;display:flex;flex-direction:column">
+        <div
+          class="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3.5 flex items-center gap-3 border-b border-indigo-500/30">
+          <div
+            class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-lg shadow-lg">
+            🤖</div>
+          <div>
+            <div class="font-bold text-sm text-white">ClaimIQ Copilot</div>
+            <div class="text-indigo-200 text-xs">Powered by Google Gemini</div>
+          </div>
+          <span
+            class="ml-auto text-xs bg-green-500/20 text-green-100 px-2.5 py-1 rounded-full border border-green-400/30 flex items-center gap-1.5 font-semibold"><span
+              class="w-1.5 h-1.5 bg-green-300 rounded-full"></span>Online</span>
+        </div>
+        <div class="px-4 py-3 border-b border-gray-200 flex gap-2 flex-wrap bg-gray-50">
+          <button onclick="sendChatMsg('What documents do I need?')"
+            class="text-xs bg-white hover:bg-indigo-50 border border-gray-200 rounded-lg px-3 py-1.5 transition font-medium text-gray-700">📋
+            Documents needed</button>
+          <button onclick="sendChatMsg('Am I eligible for auto-approval?')"
+            class="text-xs bg-white hover:bg-indigo-50 border border-gray-200 rounded-lg px-3 py-1.5 transition font-medium text-gray-700">⚡
+            Check eligibility</button>
+          <button onclick="sendChatMsg('How is my settlement calculated?')"
+            class="text-xs bg-white hover:bg-indigo-50 border border-gray-200 rounded-lg px-3 py-1.5 transition font-medium text-gray-700">💰
+            Settlement calc</button>
+          <button onclick="sendChatMsg('How does fraud detection work?')"
+            class="text-xs bg-white hover:bg-indigo-50 border border-gray-200 rounded-lg px-3 py-1.5 transition font-medium text-gray-700">🔍
+            Fraud scoring</button>
+        </div>
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+          <div class="flex gap-3">
+            <div
+              class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-sm flex-shrink-0">
+              🤖</div>
+            <div
+              class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-700 max-w-md border border-gray-200 shadow-sm">
+              Hi! I'm your ClaimIQ Copilot, powered by <strong>Google Gemini</strong> 👋<br /><br />I can help you with
+              claim eligibility, documents, settlement estimates, and fraud scoring. What would you like to know?</div>
+          </div>
+        </div>
+        <div class="p-4 border-t border-gray-200 flex gap-3 bg-white">
+          <input id="chatInput" type="text" placeholder="Ask about your claim..."
+            class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition"
+            onkeydown="if(event.key==='Enter') sendChat()" />
+          <button onclick="sendChat()"
+            class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-5 py-3 rounded-xl transition font-bold text-sm shadow-lg">Send</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- CLAIM DETAIL MODAL -->
+  <div id="claimModal"
+    class="fixed inset-0 z-50 hidden modal-overlay flex items-start justify-center pt-10 overflow-y-auto pb-10">
+    <div class="bg-white rounded-3xl border border-gray-200 w-full max-w-3xl mx-4 shadow-2xl" id="modalContent">
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:8000';
+    let token = localStorage.getItem('claimiq_token');
+    let user = JSON.parse(localStorage.getItem('claimiq_user') || '{}');
+    let currentClaimId = null, pipelinePolling = null;
+    if (!token) window.location.href = 'login.html';
+    document.getElementById('userName').textContent = user.full_name || 'User';
+    document.getElementById('userPolicy').textContent = user.policy_number || '';
+
+    function logout() { localStorage.clear(); window.location.href = 'login.html' }
+    function showSection(name) {
+      ['overview', 'submit', 'claims', 'copilot'].forEach(s => document.getElementById(`sec-${s}`).classList.add('hidden'));
+      document.getElementById(`sec-${name}`).classList.remove('hidden');
+      document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('bg-indigo-50', 'text-indigo-700'); b.classList.add('text-gray-600'); });
+      if (event?.currentTarget) { event.currentTarget.classList.add('bg-indigo-50', 'text-indigo-700'); event.currentTarget.classList.remove('text-gray-600'); }
+      if (name === 'overview') loadOverview(); if (name === 'claims') loadClaims();
+    }
+    async function authFetch(url, opts = {}) {
+      const headers = { 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) };
+      if (!(opts.body instanceof FormData)) headers['Content-Type'] = 'application/json';
+      return fetch(`${API}${url}`, { ...opts, headers });
+    }
+
+    // ── OVERVIEW ──
+    async function loadOverview() {
+      try {
+        const res = await authFetch('/api/dashboard/my-stats'); const d = await res.json();
+        document.getElementById('statTotal').textContent = d.total_claims ?? 0;
+        document.getElementById('statApproved').textContent = d.approved_claims ?? 0;
+        document.getElementById('statPending').textContent = d.pending_claims ?? 0;
+        document.getElementById('statAmount').textContent = `$${(d.total_settled_amount || 0).toLocaleString()}`;
+        document.getElementById('policyNum').textContent = d.policy_number || '–';
+        document.getElementById('policyType').textContent = d.policy_type || '';
+        document.getElementById('policyLimit').textContent = `$${(d.policy_limit || 0).toLocaleString()}`;
+      } catch (e) { } loadRecentClaims();
+    }
+    async function loadRecentClaims() {
+      try {
+        const res = await authFetch('/api/claims/my'); const claims = await res.json(); const c = document.getElementById('recentClaims');
+        if (!claims.length) { c.innerHTML = '<p class="text-gray-500 text-sm">No claims yet. Submit your first claim!</p>'; return }
+        c.innerHTML = claims.slice(0, 3).map(c => `<div class="flex items-center justify-between bg-gray-50 rounded-xl p-3.5 border border-gray-200 hover:border-indigo-300 transition cursor-pointer" onclick="openClaimDetail(${c.id})">
+      <div><div class="font-semibold text-sm text-gray-800">${c.claim_reference}</div><div class="text-gray-500 text-xs capitalize">${c.claim_type} · $${c.claim_amount.toLocaleString()}</div></div>
+      <span class="status-${c.status} text-xs font-bold px-2.5 py-1 rounded-full border capitalize">${c.status.replace(/_/g, ' ')}</span></div>`).join('');
+      } catch (e) { }
+    }
+
+    // ── CLAIMS LIST ──
+    async function loadClaims() {
+      try {
+        const res = await authFetch('/api/claims/my'); const claims = await res.json(); const container = document.getElementById('claimsList');
+        if (!claims.length) { container.innerHTML = '<div class="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm"><p class="text-gray-500">No claims yet. <button onclick="showSection(\'submit\')" class="text-blue-600 hover:underline font-semibold">File your first claim</button></p></div>'; return }
+        container.innerHTML = claims.map(c => `<div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition cursor-pointer" onclick="openClaimDetail(${c.id})">
+      <div class="flex items-start justify-between mb-4"><div><div class="font-bold text-lg text-gray-800">${c.claim_reference}</div><div class="text-gray-500 text-sm capitalize">${c.claim_type} · $${c.claim_amount.toLocaleString()}</div></div>
+        <span class="status-${c.status} text-xs font-bold px-3 py-1.5 rounded-full border capitalize">${c.status.replace(/_/g, ' ')}</span></div>
+      <div class="grid grid-cols-4 gap-3 text-sm">
+        <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-gray-500 text-xs mb-1">Fraud Score</div><div class="font-bold ${c.fraud_score > 70 ? 'text-red-600' : c.fraud_score > 40 ? 'text-amber-600' : 'text-green-600'}">${(c.fraud_score || 0).toFixed(0)}/100</div></div>
+        <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-gray-500 text-xs mb-1">Confidence</div><div class="font-bold text-blue-600">${(c.confidence_score || 0).toFixed(0)}%</div></div>
+        <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-gray-500 text-xs mb-1">Approved</div><div class="font-bold text-gray-800">$${(c.approved_amount || 0).toLocaleString()}</div></div>
+        <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-gray-500 text-xs mb-1">Payout</div><div class="font-bold capitalize ${c.payout_status === 'paid' ? 'text-green-600' : c.payout_status === 'rejected' ? 'text-red-600' : 'text-amber-600'}">${c.payout_status || 'pending'}</div></div>
+      </div>
+      <div class="mt-3 text-xs text-gray-500 flex items-center gap-2"><span>📅 ${c.submitted_at ? new Date(c.submitted_at).toLocaleDateString() : '–'}</span><span>·</span><span class="text-blue-600 font-semibold">Click to view details & AI explanation →</span></div>
+    </div>`).join('');
+      } catch (e) { document.getElementById('claimsList').innerHTML = '<p class="text-red-600 text-sm">Error loading claims</p>' }
+    }
+
+    // ── CLAIM DETAIL MODAL ──
+    async function openClaimDetail(claimId) {
+      try {
+        const res = await authFetch(`/api/claims/${claimId}/details`); const d = await res.json();
+        const c = d.claim, fraud = d.fraud_analysis, ex = d.explainability, pipe = d.pipeline, audit = d.audit_trail || [];
+        const statusColor = c.status === 'approved' ? 'green' : c.status === 'rejected' ? 'red' : 'yellow';
+        const statusIcon = c.status === 'approved' ? '✅' : c.status === 'rejected' ? '❌' : '⚠️';
+        let explainHTML = '';
+        if (ex) {
+          const bullets = (ex.bullet_points || []).map(b => `<div class="text-sm py-1">${b}</div>`).join('');
+          const factors = (ex.factors || []).map(f => `<div class="flex items-center gap-2 text-sm py-1.5 border-b border-gray-100 last:border-0"><span class="${f.direction === 'POSITIVE' ? 'text-green-600' : 'text-red-600'} text-xs font-bold w-16">${f.impact}</span><span class="text-gray-700 flex-1">${f.factor}</span><span class="${f.direction === 'POSITIVE' ? 'text-green-600' : 'text-red-600'} text-xs">${f.direction === 'POSITIVE' ? '✅' : '❌'}</span></div>`).join('');
+          explainHTML = `<div class="bg-gray-50 rounded-xl p-5 border border-gray-200 mb-4"><h4 class="font-bold text-sm mb-1 flex items-center gap-2 text-gray-800">🧠 AI Explanation <span class="text-xs font-normal text-gray-500">Confidence: ${(ex.confidence || 0).toFixed(0)}%</span></h4><p class="text-gray-500 text-sm mb-3">${ex.summary || ''}</p><div class="mb-4 text-gray-700">${bullets}</div><div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Decision Factors</div><div class="bg-white rounded-lg p-3 border border-gray-100">${factors}</div>${ex.risk_breakdown ? `<div class="grid grid-cols-3 gap-3 mt-4"><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Fraud Risk</div><div class="font-bold text-red-600">${ex.risk_breakdown.fraud_risk}</div></div><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Amount Risk</div><div class="font-bold text-orange-600">${ex.risk_breakdown.amount_risk?.toFixed(0)}</div></div><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Behavioral</div><div class="font-bold text-amber-600">${ex.risk_breakdown.behavioral_risk}</div></div></div>` : ''}<div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">💡 <strong>Recommendation:</strong> ${ex.recommendation || 'N/A'}</div></div>`;
+        }
+        const stageNames = ['submitted', 'document_verification', 'fraud_analysis', 'risk_scoring', 'decision_engine', 'settlement'];
+        const stageLabels = { submitted: 'Submitted', document_verification: 'Doc Verify', fraud_analysis: 'Fraud Check', risk_scoring: 'Risk Score', decision_engine: 'Decision', settlement: 'Settlement' };
+        const pipelineHTML = stageNames.map(s => { const ts = pipe.stages[s]; const done = !!ts; return `<div class="flex items-center gap-3 py-2 ${done ? 'text-green-600' : 'text-gray-400'}"><span class="text-lg">${done ? '✅' : '⏳'}</span><span class="text-sm font-medium w-28">${stageLabels[s]}</span><span class="text-xs">${ts ? new Date(ts).toLocaleTimeString() : 'Pending'}</span></div>` }).join('');
+        const auditHTML = audit.map(a => `<div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0 text-sm"><span class="text-gray-400 text-xs w-20">${a.timestamp ? new Date(a.timestamp).toLocaleTimeString() : ''}</span><span class="text-gray-700 flex-1">${a.action}</span><span class="text-gray-400 text-xs">${a.duration_ms ? a.duration_ms.toFixed(0) + 'ms' : ''}</span></div>`).join('');
+        document.getElementById('modalContent').innerHTML = `<div class="p-6 border-b border-gray-200 flex items-center justify-between"><div><h2 class="text-xl font-bold text-gray-800">${c.claim_reference}</h2><div class="text-gray-500 text-sm capitalize">${c.claim_type} Insurance · $${c.claim_amount.toLocaleString()}</div></div><div class="flex items-center gap-3"><span class="status-${c.status} text-sm font-bold px-4 py-2 rounded-full border capitalize">${statusIcon} ${c.status.replace(/_/g, ' ')}</span><button onclick="closeModal()" class="text-gray-400 hover:text-gray-800 text-2xl transition">✕</button></div></div>
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div class="grid grid-cols-4 gap-3"><div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Fraud Score</div><div class="text-2xl font-black ${fraud.fraud_score > 70 ? 'text-red-600' : fraud.fraud_score > 40 ? 'text-amber-600' : 'text-green-600'}">${(fraud.fraud_score || 0).toFixed(0)}</div></div><div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Risk Score</div><div class="text-2xl font-black text-orange-600">${(fraud.risk_score || 0).toFixed(0)}</div></div><div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Confidence</div><div class="text-2xl font-black text-blue-600">${(c.confidence_score || 0).toFixed(0)}%</div></div><div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Approved</div><div class="text-2xl font-black text-${statusColor}-600">$${(c.approved_amount || 0).toLocaleString()}</div></div></div>
+        ${explainHTML}
+        ${fraud.triggered_rules?.length ? `<div class="bg-gray-50 rounded-xl p-5 border border-gray-200"><h4 class="font-bold text-sm mb-3 text-gray-800">🚨 Triggered Fraud Rules (${fraud.triggered_rules.length})</h4>${fraud.triggered_rules.map(r => `<div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0"><span class="text-xs font-mono text-gray-500">${r.rule_id}</span><span class="text-xs font-bold uppercase ${r.severity === 'critical' ? 'text-red-600' : r.severity === 'high' ? 'text-orange-600' : 'text-amber-600'}">${r.severity}</span><span class="text-sm text-gray-700 flex-1">${r.rule_name}</span><span class="text-xs text-red-600 font-bold">+${r.score_impact}</span></div>`).join('')}</div>` : ''}
+        <div class="bg-gray-50 rounded-xl p-5 border border-gray-200"><h4 class="font-bold text-sm mb-3 text-gray-800">🔄 Pipeline Timeline</h4>${pipelineHTML}</div>
+        ${audit.length ? `<div class="bg-gray-50 rounded-xl p-5 border border-gray-200"><h4 class="font-bold text-sm mb-3 text-gray-800">📜 Audit Trail</h4>${auditHTML}</div>` : ''}
+        <div class="bg-gray-50 rounded-xl p-5 border border-gray-200"><h4 class="font-bold text-sm mb-2 text-gray-800">📝 Incident Description</h4><p class="text-gray-600 text-sm">${c.incident_description || 'N/A'}</p><p class="text-gray-500 text-xs mt-2">${c.settlement_notes || ''}</p></div>
+      </div>`;
+        document.getElementById('claimModal').classList.remove('hidden');
+      } catch (e) { console.error(e) }
+    }
+    function closeModal() { document.getElementById('claimModal').classList.add('hidden') }
+    document.getElementById('claimModal').addEventListener('click', e => { if (e.target.id === 'claimModal') closeModal() });
+
+    // ── CLAIM SUBMISSION ──
+    const REQUIRED_DOCS = { auto: ['police_report', 'photos', 'invoice'], health: ['medical_bill', 'id_proof'], travel: ['id_proof', 'booking_proof'], property: ['photos', 'invoice', 'id_proof'] };
+    const DOC_LABELS = { police_report: '🚔 Police Report', photos: '📷 Photos', invoice: '🧾 Invoice', medical_bill: '🏥 Medical Bill', id_proof: '🪪 ID Proof', booking_proof: '✈️ Booking Proof' };
+    let uploadedDocTypes = [];
+
+    function updateRequiredDocsPreview() {
+      const ct = document.getElementById('claimType').value;
+      const p = document.getElementById('requiredDocsPreview');
+      const l = document.getElementById('requiredDocsList');
+      if (!ct) { p.classList.add('hidden'); return }
+      p.classList.remove('hidden');
+      const req = REQUIRED_DOCS[ct] || ['id_proof'];
+      l.innerHTML = req.map(d => `<span class="bg-blue-100 border border-blue-200 rounded-lg px-3 py-1.5 text-xs font-medium text-blue-700">${DOC_LABELS[d] || d}</span>`).join('');
+    }
+    function updateAmountIndicator() {
+      const amt = parseFloat(document.getElementById('claimAmount').value) || 0;
+      const limit = user.policy_limit || 10000;
+      const pct = ((amt / limit) * 100).toFixed(0);
+      const el = document.getElementById('amountIndicator');
+      if (amt <= 0) { el.innerHTML = 'Claims up to $5,000 are eligible for automatic STP processing'; el.className = 'mt-2 text-xs text-gray-500'; return }
+      let color = 'text-green-600', msg = `✅ ${pct}% of your $${limit.toLocaleString()} policy limit — STP eligible`;
+      if (amt > 5000) { color = 'text-amber-600'; msg = `⚠️ ${pct}% of limit — exceeds $5,000 STP threshold, may need manual review` }
+      if (pct >= 90) { color = 'text-red-600'; msg = `🚨 ${pct}% of limit — high amount may trigger fraud rules` }
+      el.innerHTML = msg; el.className = 'mt-2 text-xs font-medium ' + color;
+    }
+    function renderRequiredDocsChecklist() {
+      const ct = document.getElementById('claimType').value;
+      const req = REQUIRED_DOCS[ct] || ['id_proof'];
+      const el = document.getElementById('docUploadSlots');
+      el.innerHTML = req.map(d => {
+        const done = uploadedDocTypes.includes(d);
+        const slotId = `slot-${d}`;
+        const inputId = `file-${d}`;
+        if (done) {
+          // Completed slot
+          return `<div id="${slotId}" class="bg-green-50 border border-green-200 rounded-xl p-4 transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-lg">✅</div>
+              <div class="flex-1">
+                <div class="font-semibold text-sm text-green-800">${DOC_LABELS[d] || d}</div>
+                <div class="text-green-600 text-xs font-medium">Uploaded & verified by AI</div>
+              </div>
+              <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full border border-green-200">Done</span>
+            </div>
+          </div>`;
+        }
+        // Pending upload slot
+        return `<div id="${slotId}" class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 hover:bg-blue-50/30 transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-lg">${DOC_LABELS[d]?.split(' ')[0] || '📄'}</div>
+            <div class="flex-1">
+              <div class="font-semibold text-sm text-gray-800">${DOC_LABELS[d] || d}</div>
+              <div class="text-gray-400 text-xs">Required — click to upload PDF or image</div>
+            </div>
+            <input id="${inputId}" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="handleSlotFile('${d}')" />
+            <button onclick="document.getElementById('${inputId}').click()" id="btn-${d}"
+              class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2 rounded-lg transition shadow-sm">Choose File</button>
+          </div>
+          <div id="preview-${d}" class="hidden mt-3 ml-13 text-sm text-blue-600 font-medium"></div>
+          <div id="uploading-${d}" class="hidden mt-3 ml-13">
+            <div class="flex items-center gap-2 text-sm text-blue-600"><div class="animate-spin w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></div>Uploading & analyzing with AI...</div>
+          </div>
+        </div>`;
+      }).join('');
+      // Check missing docs warning
+      const missing = req.filter(d => !uploadedDocTypes.includes(d));
+      document.getElementById('missingDocsWarn').classList.toggle('hidden', missing.length === 0);
+    }
+
+    // Handle file selection for a specific required doc slot
+    async function handleSlotFile(docType) {
+      const fileInput = document.getElementById(`file-${docType}`);
+      const file = fileInput.files[0];
+      if (!file || !currentClaimId) return;
+
+      // Show uploading state
+      const btn = document.getElementById(`btn-${docType}`);
+      const uploadingEl = document.getElementById(`uploading-${docType}`);
+      btn.textContent = 'Uploading...';
+      btn.disabled = true;
+      uploadingEl.classList.remove('hidden');
+
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('doc_type', docType);
+        const res = await fetch(`${API}/api/documents/upload/${currentClaimId}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: form
+        });
+        const d = await res.json();
+        // The backend auto-classifies: use the AI-detected type
+        const actualType = d.doc_type || docType;
+        uploadedDocTypes.push(actualType);
+
+        // Build result card
+        const ocrPct = (d.ocr_confidence * 100).toFixed(0);
+        const verified = d.is_verified;
+        let classifyNote = '';
+        if (d.auto_classified) {
+          classifyNote = `<div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">🤖 <strong>AI reclassified:</strong> Your file was detected as <strong>${DOC_LABELS[actualType] || actualType}</strong> instead of ${DOC_LABELS[docType] || docType}</div>`;
+        }
+        let fieldsHtml = '';
+        if (d.extracted_fields && Object.keys(d.extracted_fields).length) {
+          fieldsHtml = `<div class="flex flex-wrap gap-2 mt-2">${Object.entries(d.extracted_fields).filter(([k]) => !['all_amounts'].includes(k)).slice(0, 4).map(([k, v]) => `<span class="bg-gray-50 rounded-lg px-2 py-1 text-xs text-gray-700 border border-gray-100"><span class="text-gray-500">${k}:</span> ${typeof v === 'number' ? '$' + v.toLocaleString() : v}</span>`).join('')}</div>`;
+        }
+
+        document.getElementById('uploadedDocs').innerHTML += `<div class="bg-white border ${verified ? 'border-green-200' : 'border-amber-200'} rounded-xl p-3.5 shadow-sm">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-lg">${verified ? '✅' : '⚠️'}</span>
+            <span class="font-semibold text-sm text-gray-800">${file.name}</span>
+            <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200">${DOC_LABELS[actualType] || actualType}</span>
+            <span class="ml-auto text-xs font-bold ${ocrPct > 70 ? 'text-green-600' : ocrPct > 40 ? 'text-amber-600' : 'text-red-600'}">OCR: ${ocrPct}%</span>
+          </div>${classifyNote}${fieldsHtml}</div>`;
+
+        renderRequiredDocsChecklist();
+      } catch (e) { console.error(e) }
+    }
+
+    // Extra (optional) document upload
+    function previewExtraFile() {
+      const file = document.getElementById('extraDocFile').files[0];
+      const preview = document.getElementById('extraFilePreview');
+      const btn = document.getElementById('extraUploadBtn');
+      if (file) { preview.textContent = `📎 ${file.name} (${(file.size / 1024).toFixed(0)} KB)`; preview.classList.remove('hidden'); btn.disabled = false }
+      else { preview.classList.add('hidden'); btn.disabled = true }
+    }
+    async function uploadExtraDoc() {
+      if (!currentClaimId) return;
+      const file = document.getElementById('extraDocFile').files[0];
+      if (!file) return;
+      const btn = document.getElementById('extraUploadBtn');
+      btn.textContent = 'Uploading...'; btn.disabled = true;
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('doc_type', 'other');
+        const res = await fetch(`${API}/api/documents/upload/${currentClaimId}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: form
+        });
+        const d = await res.json();
+        const actualType = d.doc_type || 'other';
+        uploadedDocTypes.push(actualType);
+        const ocrPct = (d.ocr_confidence * 100).toFixed(0);
+        const verified = d.is_verified;
+        let classifyNote = '';
+        if (d.auto_classified && actualType !== 'other') {
+          classifyNote = `<div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">🤖 <strong>AI detected:</strong> This document was classified as <strong>${DOC_LABELS[actualType] || actualType}</strong></div>`;
+        }
+        document.getElementById('uploadedDocs').innerHTML += `<div class="bg-white border ${verified ? 'border-green-200' : 'border-amber-200'} rounded-xl p-3.5 shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">${verified ? '✅' : '⚠️'}</span>
+            <span class="font-semibold text-sm text-gray-800">${file.name}</span>
+            <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200">${DOC_LABELS[actualType] || actualType}</span>
+            <span class="ml-auto text-xs font-bold ${ocrPct > 70 ? 'text-green-600' : ocrPct > 40 ? 'text-amber-600' : 'text-red-600'}">OCR: ${ocrPct}%</span>
+          </div>${classifyNote}</div>`;
+        renderRequiredDocsChecklist();
+        document.getElementById('extraDocFile').value = ''; document.getElementById('extraFilePreview').classList.add('hidden');
+      } catch (e) { console.error(e) }
+      btn.textContent = 'Upload'; btn.disabled = true;
+    }
+
+    function handleDrop(e) { e.preventDefault(); }
+
+    async function submitClaimStep1() {
+      const claimType = document.getElementById('claimType').value, incidentDate = document.getElementById('incidentDate').value, claimAmount = parseFloat(document.getElementById('claimAmount').value), desc = document.getElementById('incidentDesc').value.trim();
+      if (!claimType || !incidentDate || !claimAmount || !desc) { showFormError('Please fill all required fields'); return }
+      try {
+        const res = await authFetch('/api/claims/submit', { method: 'POST', body: JSON.stringify({ claim_type: claimType, incident_date: incidentDate, claim_amount: claimAmount, incident_description: desc }) });
+        const data = await res.json(); if (!res.ok) { showFormError(data.detail || 'Submission failed'); return }
+        currentClaimId = data.id; document.getElementById('claimForm').classList.add('hidden'); document.getElementById('uploadStep').classList.remove('hidden');
+        document.getElementById('step2ind').querySelector('.step-circle').className = 'step-circle w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-blue-500/30';
+        document.getElementById('step2ind').querySelector('.step-label').className = 'step-label text-sm font-semibold text-gray-800';
+        renderRequiredDocsChecklist();
+      } catch (e) { showFormError('Server error') }
+    }
+    function submitForProcessing() {
+      document.getElementById('uploadStep').classList.add('hidden'); document.getElementById('processingStep').classList.remove('hidden');
+      document.getElementById('step3ind').querySelector('.step-circle').className = 'step-circle w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-blue-500/30';
+      document.getElementById('step3ind').querySelector('.step-label').className = 'step-label text-sm font-semibold text-gray-800'; startPipelinePolling();
+    }
+
+    // ── PREMIUM PIPELINE VIZ ──
+    const stageConfig = [
+      { key: 'submitted', label: 'Submitted', icon: '📋' },
+      { key: 'document_verification', label: 'Doc Verify', icon: '📄' },
+      { key: 'fraud_analysis', label: 'Fraud Check', icon: '🔍' },
+      { key: 'risk_scoring', label: 'Risk Score', icon: '📊' },
+      { key: 'decision_engine', label: 'Decision', icon: '⚖️' },
+      { key: 'settlement', label: 'Settlement', icon: '💸' },
+    ];
+    function renderPipelineStages(stages) {
+      const container = document.getElementById('pipelineStages');
+      container.innerHTML = stageConfig.map((sc, i) => {
+        const stage = stages?.find(s => s.name === sc.key); const status = stage?.status || 'pending';
+        const isActive = status === 'active', isComplete = status === 'completed';
+        const connector = i < stageConfig.length - 1 ? `<div class="pipeline-connector"><div class="fill ${isComplete ? 'bg-green-500' : 'bg-gray-300'}" style="width:${isComplete ? '100' : '0'}%"></div></div>` : '';
+        return `<div class="stage-node ${status} flex flex-col items-center" style="min-width:70px"><div class="node-circle">${isComplete ? '✅' : sc.icon}</div><div class="text-xs font-bold mt-2 ${isComplete ? 'text-green-600' : isActive ? 'text-blue-600' : 'text-gray-400'}">${sc.label}</div><div class="text-[10px] mt-0.5 ${isComplete ? 'text-green-500' : isActive ? 'text-blue-500' : 'text-gray-400'}">${stage?.timestamp ? new Date(stage.timestamp).toLocaleTimeString() : isActive ? '⏳' : '—'}</div></div>${connector}`;
+      }).join('');
+    }
+    function addPipelineLog(message, type = 'info') {
+      const log = document.getElementById('pipelineLog');
+      const colors = { info: 'text-blue-600', success: 'text-green-600', warning: 'text-amber-600', error: 'text-red-600' };
+      const icons = { info: '🔄', success: '✅', warning: '⚠️', error: '❌' };
+      log.innerHTML += `<div class="flex items-center gap-2 text-sm ${colors[type]}"><span>${icons[type]}</span>${message}<span class="text-gray-400 text-xs ml-auto">${new Date().toLocaleTimeString()}</span></div>`;
+      log.scrollTop = log.scrollHeight;
+    }
+    function startPipelinePolling() {
+      renderPipelineStages([]); addPipelineLog('Pipeline started — processing your claim...', 'info');
+      let lastStage = '';
+      pipelinePolling = setInterval(async () => {
+        try {
+          const res = await authFetch(`/api/pipeline/${currentClaimId}/status`); const data = await res.json();
+          renderPipelineStages(data.stages);
+          // Render stage detail card for active stage
+          const activeStage = data.stages?.find(s => s.status === 'active');
+          if (activeStage) renderStageDetail(activeStage);
+          if (data.current_stage !== lastStage) { const sc = stageConfig.find(s => s.key === data.current_stage); if (sc && data.current_stage !== 'completed') addPipelineLog(`${sc.icon} ${sc.label} — processing...`, 'info'); lastStage = data.current_stage }
+          if (data.is_complete) {
+            clearInterval(pipelinePolling); addPipelineLog('Pipeline complete!', 'success');
+            // Show final completed stage detail
+            const lastCompleted = data.stages?.[data.stages.length - 1];
+            if (lastCompleted) renderStageDetail(lastCompleted);
+            setTimeout(() => showPipelineResult(data), 1200)
+          }
+        } catch (e) { }
+      }, 1500);
+    }
+    function renderStageDetail(stage) {
+      const card = document.getElementById('stageDetailCard');
+      const d = stage.detail;
+      if (!d) { card.innerHTML = `<div class="text-center"><div class="text-2xl mb-2">${stageConfig.find(s => s.key === stage.name)?.icon || '⏳'}</div><div class="text-sm text-gray-500">${stage.label} — analyzing...</div></div>`; return }
+      let html = '';
+      if (stage.name === 'submitted') {
+        html = `<div class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">📋 Claim Received</div><div class="grid grid-cols-3 gap-3"><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Type</div><div class="font-bold text-sm capitalize text-gray-800">${d.claim_type}</div></div><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Amount</div><div class="font-bold text-sm text-gray-800">$${d.claim_amount?.toLocaleString()}</div></div><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">% of Limit</div><div class="font-bold text-sm ${d.amount_to_limit_pct >= 90 ? 'text-red-600' : d.amount_to_limit_pct >= 70 ? 'text-amber-600' : 'text-green-600'}">${d.amount_to_limit_pct}%</div></div></div>`;
+      } else if (stage.name === 'document_verification') {
+        const docsHtml = d.documents?.length ? d.documents.map(doc => `<div class="flex items-center gap-2 py-1.5 border-b border-gray-100 last:border-0"><span>${doc.is_verified ? '✅' : '⚠️'}</span><span class="text-sm text-gray-700">${doc.file_name}</span><span class="text-xs text-gray-500">(${doc.doc_type})</span><span class="ml-auto text-xs font-bold ${doc.ocr_confidence > 0.7 ? 'text-green-600' : 'text-amber-600'}">OCR ${(doc.ocr_confidence * 100).toFixed(0)}%</span></div>`).join('') : '<div class="text-gray-500 text-sm">No documents uploaded</div>';
+        html = `<div class="text-xs font-bold text-cyan-600 uppercase tracking-widest mb-3">📄 Document Verification — ${d.total_uploaded} doc(s)</div>${docsHtml}<div class="mt-2 text-xs ${d.all_verified ? 'text-green-600' : 'text-amber-600'} font-semibold">${d.all_verified ? '✅ All documents verified' : '⚠️ Some documents missing or unverified'}</div>`;
+      } else if (stage.name === 'fraud_analysis') {
+        const rulesHtml = d.triggered_rules?.length ? d.triggered_rules.map(r => `<div class="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm"><span class="text-xs font-mono text-gray-500">${r.rule_id}</span><span class="text-xs font-bold uppercase ${r.severity === 'critical' ? 'text-red-600' : r.severity === 'high' ? 'text-orange-600' : 'text-amber-600'}">${r.severity}</span><span class="flex-1 text-gray-700">${r.rule_name}</span><span class="text-red-600 text-xs font-bold">+${r.score_impact}</span></div>`).join('') : `<div class="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700">✅ No fraud rules triggered</div>`;
+        html = `<div class="text-xs font-bold text-orange-600 uppercase tracking-widest mb-3">🔍 Fraud Analysis — ${d.rules_checked} rules checked</div><div class="flex items-center gap-4 mb-3"><div class="text-2xl font-black ${d.fraud_score > 70 ? 'text-red-600' : d.fraud_score > 40 ? 'text-amber-600' : 'text-green-600'}">${d.fraud_score?.toFixed(0)}/100</div><div class="text-sm text-gray-500">${d.rules_triggered} rule(s) triggered</div></div><div class="space-y-2">${rulesHtml}</div>`;
+      } else if (stage.name === 'risk_scoring') {
+        html = `<div class="text-xs font-bold text-purple-600 uppercase tracking-widest mb-3">📊 Risk Assessment</div><div class="grid grid-cols-4 gap-3"><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Risk</div><div class="font-bold text-orange-600">${d.risk_score?.toFixed(0)}</div></div><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Eligible</div><div class="font-bold ${d.eligibility_passed ? 'text-green-600' : 'text-red-600'}">${d.eligibility_passed ? 'Yes' : 'No'}</div></div><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Deductible</div><div class="font-bold text-gray-700">$${d.deductible?.toLocaleString()}</div></div><div class="bg-white rounded-lg p-3 text-center border border-gray-100"><div class="text-xs text-gray-500">Approved</div><div class="font-bold text-blue-600">$${d.approved_amount?.toLocaleString()}</div></div></div>`;
+      } else if (stage.name === 'decision_engine') {
+        const gates = [{ label: 'Eligibility', ok: d.eligibility_passed }, { label: 'Documents', ok: d.documents_verified }, { label: 'Fraud Clear', ok: d.fraud_cleared }];
+        html = `<div class="text-xs font-bold text-amber-600 uppercase tracking-widest mb-3">⚖️ Decision Engine</div><div class="flex gap-3 mb-3">${gates.map(g => `<div class="flex-1 ${g.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border rounded-lg p-2.5 text-center"><div class="text-lg">${g.ok ? '✅' : '❌'}</div><div class="text-xs font-semibold ${g.ok ? 'text-green-600' : 'text-red-600'}">${g.label}</div></div>`).join('')}</div><div class="text-sm text-gray-600">${d.settlement_notes || ''}</div><div class="text-xs text-gray-500 mt-1">Confidence: ${d.confidence_score?.toFixed(0)}% · ${d.auto_decided ? 'Auto-decided' : 'Manual review'}</div>`;
+      } else if (stage.name === 'settlement') {
+        const sc = d.status === 'approved' ? 'green' : d.status === 'rejected' ? 'red' : 'yellow';
+        html = `<div class="text-xs font-bold text-${sc}-600 uppercase tracking-widest mb-3">💸 Settlement</div><div class="text-center"><div class="text-3xl font-black text-${sc}-600 capitalize mb-2">${d.status?.replace(/_/g, ' ')}</div><div class="text-lg text-gray-700">Approved: <strong>$${d.approved_amount?.toLocaleString()}</strong></div><div class="text-xs text-gray-500 mt-1">Payout: ${d.payout_status} · Deductible: $${d.deductible?.toLocaleString()}</div></div>`;
+      }
+      card.innerHTML = html;
+    }
+    function showPipelineResult(data) {
+      const statusColor = data.decision === 'approved' ? 'green' : data.decision === 'rejected' ? 'red' : 'yellow';
+      const icon = data.decision === 'approved' ? '🎉' : data.decision === 'rejected' ? '❌' : '⏳';
+      const ex = data.explainability_report;
+      let explainSection = '';
+      if (ex && ex.bullet_points) { explainSection = `<div class="bg-gray-50 rounded-xl p-5 border border-gray-200 text-left mt-4"><h4 class="font-bold text-sm mb-3 text-gray-800">🧠 AI Explanation</h4><p class="text-gray-500 text-sm mb-3">${ex.summary || ''}</p>${ex.bullet_points.map(b => `<div class="text-sm py-1 text-gray-700">${b}</div>`).join('')}<div class="mt-3 bg-blue-50 rounded-lg px-4 py-2.5 text-sm text-blue-700">💡 ${ex.recommendation || ''}</div></div>` }
+      document.getElementById('resultBox').classList.remove('hidden');
+      document.getElementById('resultBox').innerHTML = `<div class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center"><div class="text-5xl mb-4">${icon}</div><h3 class="text-2xl font-black capitalize mb-2 text-${statusColor}-600">${data.decision.replace(/_/g, ' ')}</h3><div class="grid grid-cols-3 gap-3 mt-6 mb-4"><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Fraud Score</div><div class="font-black text-lg ${data.fraud_score > 70 ? 'text-red-600' : data.fraud_score > 40 ? 'text-amber-600' : 'text-green-600'}">${(data.fraud_score || 0).toFixed(0)}/100</div></div><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Confidence</div><div class="font-black text-lg text-blue-600">${(data.confidence_score || 0).toFixed(0)}%</div></div><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Approved</div><div class="font-black text-lg text-${statusColor}-600">$${(data.approved_amount || 0).toLocaleString()}</div></div></div>${explainSection}<button onclick="openClaimDetail(${currentClaimId})" class="mt-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-blue-500/20 mr-3">View Full Details</button><button onclick="showSection('claims')" class="mt-6 bg-gray-100 border border-gray-200 text-gray-700 font-medium px-8 py-3 rounded-xl transition hover:bg-gray-200">All Claims</button></div>`;
+    }
+    function showFormError(msg) { const b = document.getElementById('formError'); b.textContent = msg; b.classList.remove('hidden') }
+
+    // ── COPILOT ──
+    async function sendChat() { const input = document.getElementById('chatInput'); const msg = input.value.trim(); if (!msg) return; input.value = ''; sendChatMsg(msg) }
+    async function sendChatMsg(msg) {
+      const container = document.getElementById('chatMessages');
+      container.innerHTML += `<div class="flex gap-3 justify-end"><div class="bg-blue-600 rounded-2xl rounded-tr-sm px-4 py-3 text-sm max-w-xs text-white">${msg}</div></div>`;
+      const typingId = 'typing-' + Date.now();
+      container.innerHTML += `<div id="${typingId}" class="flex gap-3"><div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-sm flex-shrink-0">🤖</div><div class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-200 shadow-sm flex gap-1"><span class="typing-dot w-2 h-2 bg-gray-400 rounded-full"></span><span class="typing-dot w-2 h-2 bg-gray-400 rounded-full"></span><span class="typing-dot w-2 h-2 bg-gray-400 rounded-full"></span></div></div>`;
+      container.scrollTop = container.scrollHeight;
+      try {
+        const res = await authFetch('/api/copilot/chat', { method: 'POST', body: JSON.stringify({ message: msg, claim_type: document.getElementById('claimType')?.value || null }) });
+        const data = await res.json(); document.getElementById(typingId)?.remove();
+        const formatted = (data.reply || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+        let suggestionsHTML = ''; if (data.suggestions?.length) { suggestionsHTML = `<div class="flex gap-2 mt-2 flex-wrap">${data.suggestions.map(s => `<button onclick="sendChatMsg('${s}')" class="text-xs bg-gray-50 hover:bg-indigo-50 border border-gray-200 rounded-lg px-2.5 py-1 transition text-gray-700">${s}</button>`).join('')}</div>` }
+        container.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-sm flex-shrink-0">🤖</div><div class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-700 max-w-md border border-gray-200 shadow-sm">${formatted}${suggestionsHTML}</div></div>`;
+      } catch (e) { document.getElementById(typingId)?.remove(); container.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center text-sm flex-shrink-0">❌</div><div class="bg-white rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-red-600 max-w-sm border border-red-200 shadow-sm">Sorry, couldn't connect. Make sure the backend is running.</div></div>` }
+      container.scrollTop = container.scrollHeight;
+    }
+    loadOverview();
+  </script>
+</body>
+
+</html>
