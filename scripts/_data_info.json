@@ -1,0 +1,289 @@
+{
+  "rows": 15420,
+  "columns": [
+    "Month",
+    "WeekOfMonth",
+    "DayOfWeek",
+    "Make",
+    "AccidentArea",
+    "DayOfWeekClaimed",
+    "MonthClaimed",
+    "WeekOfMonthClaimed",
+    "Sex",
+    "MaritalStatus",
+    "Age",
+    "Fault",
+    "PolicyType",
+    "VehicleCategory",
+    "VehiclePrice",
+    "FraudFound_P",
+    "PolicyNumber",
+    "RepNumber",
+    "Deductible",
+    "DriverRating",
+    "Days_Policy_Accident",
+    "Days_Policy_Claim",
+    "PastNumberOfClaims",
+    "AgeOfVehicle",
+    "AgeOfPolicyHolder",
+    "PoliceReportFiled",
+    "WitnessPresent",
+    "AgentType",
+    "NumberOfSuppliments",
+    "AddressChange_Claim",
+    "NumberOfCars",
+    "Year",
+    "BasePolicy"
+  ],
+  "fraud_counts": {
+    "0": 14497,
+    "1": 923
+  },
+  "dtypes": {
+    "Month": "object",
+    "WeekOfMonth": "int64",
+    "DayOfWeek": "object",
+    "Make": "object",
+    "AccidentArea": "object",
+    "DayOfWeekClaimed": "object",
+    "MonthClaimed": "object",
+    "WeekOfMonthClaimed": "int64",
+    "Sex": "object",
+    "MaritalStatus": "object",
+    "Age": "int64",
+    "Fault": "object",
+    "PolicyType": "object",
+    "VehicleCategory": "object",
+    "VehiclePrice": "object",
+    "FraudFound_P": "int64",
+    "PolicyNumber": "int64",
+    "RepNumber": "int64",
+    "Deductible": "int64",
+    "DriverRating": "int64",
+    "Days_Policy_Accident": "object",
+    "Days_Policy_Claim": "object",
+    "PastNumberOfClaims": "object",
+    "AgeOfVehicle": "object",
+    "AgeOfPolicyHolder": "object",
+    "PoliceReportFiled": "object",
+    "WitnessPresent": "object",
+    "AgentType": "object",
+    "NumberOfSuppliments": "object",
+    "AddressChange_Claim": "object",
+    "NumberOfCars": "object",
+    "Year": "int64",
+    "BasePolicy": "object"
+  },
+  "sample_values": {
+    "Month": [
+      "Dec",
+      "Jan",
+      "Oct",
+      "Jun",
+      "Feb",
+      "Nov"
+    ],
+    "WeekOfMonth": [
+      "5",
+      "3",
+      "2",
+      "4",
+      "1"
+    ],
+    "DayOfWeek": [
+      "Wednesday",
+      "Friday",
+      "Saturday",
+      "Monday",
+      "Tuesday",
+      "Sunday"
+    ],
+    "Make": [
+      "Honda",
+      "Toyota",
+      "Ford",
+      "Mazda",
+      "Chevrolet",
+      "Pontiac"
+    ],
+    "AccidentArea": [
+      "Urban",
+      "Rural"
+    ],
+    "DayOfWeekClaimed": [
+      "Tuesday",
+      "Monday",
+      "Thursday",
+      "Friday",
+      "Wednesday",
+      "Saturday"
+    ],
+    "MonthClaimed": [
+      "Jan",
+      "Nov",
+      "Jul",
+      "Feb",
+      "Mar",
+      "Dec"
+    ],
+    "WeekOfMonthClaimed": [
+      "1",
+      "4",
+      "2",
+      "3",
+      "5"
+    ],
+    "Sex": [
+      "Female",
+      "Male"
+    ],
+    "MaritalStatus": [
+      "Single",
+      "Married",
+      "Widow",
+      "Divorced"
+    ],
+    "Age": [
+      "21",
+      "34",
+      "47",
+      "65",
+      "27",
+      "20"
+    ],
+    "Fault": [
+      "Policy Holder",
+      "Third Party"
+    ],
+    "PolicyType": [
+      "Sport - Liability",
+      "Sport - Collision",
+      "Sedan - Liability",
+      "Utility - All Perils",
+      "Sedan - All Perils",
+      "Sedan - Collision"
+    ],
+    "VehicleCategory": [
+      "Sport",
+      "Utility",
+      "Sedan"
+    ],
+    "VehiclePrice": [
+      "more than 69000",
+      "20000 to 29000",
+      "30000 to 39000",
+      "less than 20000",
+      "40000 to 59000",
+      "60000 to 69000"
+    ],
+    "FraudFound_P": [
+      "0",
+      "1"
+    ],
+    "PolicyNumber": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "RepNumber": [
+      "12",
+      "15",
+      "7",
+      "4",
+      "3",
+      "14"
+    ],
+    "Deductible": [
+      "300",
+      "400",
+      "500",
+      "700"
+    ],
+    "DriverRating": [
+      "1",
+      "4",
+      "3",
+      "2"
+    ],
+    "Days_Policy_Accident": [
+      "more than 30",
+      "15 to 30",
+      "none",
+      "1 to 7",
+      "8 to 15"
+    ],
+    "Days_Policy_Claim": [
+      "more than 30",
+      "15 to 30",
+      "8 to 15",
+      "none"
+    ],
+    "PastNumberOfClaims": [
+      "none",
+      "1",
+      "2 to 4",
+      "more than 4"
+    ],
+    "AgeOfVehicle": [
+      "3 years",
+      "6 years",
+      "7 years",
+      "more than 7",
+      "5 years",
+      "new"
+    ],
+    "AgeOfPolicyHolder": [
+      "26 to 30",
+      "31 to 35",
+      "41 to 50",
+      "51 to 65",
+      "21 to 25",
+      "36 to 40"
+    ],
+    "PoliceReportFiled": [
+      "No",
+      "Yes"
+    ],
+    "WitnessPresent": [
+      "No",
+      "Yes"
+    ],
+    "AgentType": [
+      "External",
+      "Internal"
+    ],
+    "NumberOfSuppliments": [
+      "none",
+      "more than 5",
+      "3 to 5",
+      "1 to 2"
+    ],
+    "AddressChange_Claim": [
+      "1 year",
+      "no change",
+      "4 to 8 years",
+      "2 to 3 years",
+      "under 6 months"
+    ],
+    "NumberOfCars": [
+      "3 to 4",
+      "1 vehicle",
+      "2 vehicles",
+      "5 to 8",
+      "more than 8"
+    ],
+    "Year": [
+      "1994",
+      "1995",
+      "1996"
+    ],
+    "BasePolicy": [
+      "Liability",
+      "Collision",
+      "All Perils"
+    ]
+  }
+}

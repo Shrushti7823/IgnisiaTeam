@@ -1,0 +1,96 @@
+{
+  "rows": 10000,
+  "columns": [
+    "policy_number",
+    "policy_type",
+    "claim_type",
+    "incident_type",
+    "claim_amount",
+    "policy_limit",
+    "policy_age_days",
+    "prior_claims",
+    "prior_fraud_flags",
+    "days_since_incident",
+    "is_weekend",
+    "is_round_amount",
+    "document_count",
+    "ocr_mismatch",
+    "late_reporting",
+    "claim_to_limit_ratio",
+    "fraud_reported"
+  ],
+  "fraud_counts": {
+    "0": 8858,
+    "1": 1142
+  },
+  "sample": {
+    "policy_number": {
+      "0": "POL-000000",
+      "1": "POL-000001"
+    },
+    "policy_type": {
+      "0": "auto",
+      "1": "property"
+    },
+    "claim_type": {
+      "0": "glass_damage",
+      "1": "theft"
+    },
+    "incident_type": {
+      "0": "glass_damage",
+      "1": "theft"
+    },
+    "claim_amount": {
+      "0": 627.38,
+      "1": 7013.61
+    },
+    "policy_limit": {
+      "0": 10000.0,
+      "1": 10000.0
+    },
+    "policy_age_days": {
+      "0": 939,
+      "1": 341
+    },
+    "prior_claims": {
+      "0": 1,
+      "1": 0
+    },
+    "prior_fraud_flags": {
+      "0": 0,
+      "1": 0
+    },
+    "days_since_incident": {
+      "0": 25,
+      "1": 21
+    },
+    "is_weekend": {
+      "0": 0,
+      "1": 0
+    },
+    "is_round_amount": {
+      "0": 0,
+      "1": 0
+    },
+    "document_count": {
+      "0": 2,
+      "1": 2
+    },
+    "ocr_mismatch": {
+      "0": 0,
+      "1": 0
+    },
+    "late_reporting": {
+      "0": 0,
+      "1": 0
+    },
+    "claim_to_limit_ratio": {
+      "0": 0.0627,
+      "1": 0.7014
+    },
+    "fraud_reported": {
+      "0": 0,
+      "1": 0
+    }
+  }
+}
