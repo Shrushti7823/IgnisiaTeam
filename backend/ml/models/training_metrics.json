@@ -1,0 +1,60 @@
+{
+  "trained_at": "2026-04-04T01:30:12.233140",
+  "training_time_seconds": 4.82,
+  "dataset_size": 10000,
+  "train_size": 8000,
+  "test_size": 2000,
+  "feature_count": 11,
+  "features": [
+    "claim_amount",
+    "claim_to_limit_ratio",
+    "prior_claims",
+    "prior_fraud_flags",
+    "days_since_incident",
+    "policy_age_days",
+    "is_round_amount",
+    "is_weekend",
+    "document_count",
+    "ocr_mismatch",
+    "late_reporting"
+  ],
+  "used_smote": true,
+  "model_type": "RandomForestClassifier",
+  "model_params": {
+    "n_estimators": 200,
+    "max_depth": 12,
+    "min_samples_split": 8,
+    "min_samples_leaf": 4,
+    "class_weight": "balanced"
+  },
+  "performance": {
+    "accuracy": 0.6535,
+    "precision": 0.1606,
+    "recall": 0.4825,
+    "f1_score": 0.241,
+    "roc_auc": 0.6228,
+    "cv_roc_auc_mean": 0.8085,
+    "cv_roc_auc_std": 0.0057
+  },
+  "confusion_matrix": {
+    "true_negatives": 1197,
+    "false_positives": 575,
+    "false_negatives": 118,
+    "true_positives": 110
+  },
+  "feature_importance": {
+    "policy_age_days": 0.223,
+    "claim_to_limit_ratio": 0.1799,
+    "claim_amount": 0.1484,
+    "is_weekend": 0.1194,
+    "document_count": 0.1068,
+    "days_since_incident": 0.0905,
+    "prior_claims": 0.0643,
+    "late_reporting": 0.0406,
+    "prior_fraud_flags": 0.0133,
+    "ocr_mismatch": 0.0106,
+    "is_round_amount": 0.0031
+  },
+  "fraud_rate": 0.1142,
+  "model_version": "20260404_013012"
+}
