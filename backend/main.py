@@ -41,6 +41,11 @@ frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):
     app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
+# Mount assets (videos, images, etc.)
+assets_path = os.path.join(frontend_path, "assets")
+if os.path.exists(assets_path):
+    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+
 # Include routers
 app.include_router(auth.router,           prefix="/api/auth",           tags=["Authentication"])
 app.include_router(claims.router,         prefix="/api/claims",         tags=["Claims"])
@@ -94,9 +99,61 @@ async def serve_page(page: str):
     return FileResponse(os.path.join(frontend_path, "pages", "index.html"))
 
 
+# ── Convenience API aliases ──────────────────────────────────────────
+@app.get("/claim-status/{claim_id}", tags=["Claims"])
+async def alias_claim_status(claim_id: int):
+    """Alias: forwards to /api/claims/status/{claim_id}."""
+    from fastapi import Depends
+    from backend.core.database import get_db, get_new_session
+    from backend.models.claim import Claim
+    db = get_new_session()
+    try:
+        claim = db.query(Claim).filter(Claim.id == claim_id).first()
+        if not claim:
+            return {"error": "Claim not found"}
+        return {
+            "claim_id": claim.id, "claim_reference": claim.claim_reference,
+            "status": claim.status, "current_stage": claim.current_stage,
+            "fraud_score": claim.fraud_score, "risk_score": claim.risk_score,
+            "confidence_score": claim.confidence_score,
+            "approved_amount": claim.approved_amount, "payout_status": claim.payout_status,
+        }
+    finally:
+        db.close()
+
+
+@app.get("/fraud-score/{claim_id}", tags=["Fraud"])
+async def alias_fraud_score(claim_id: int):
+    """Alias: forwards to /api/fraud/score/{claim_id}."""
+    from backend.core.database import get_new_session
+    from backend.models.claim import Claim
+    from backend.models.document import FraudAlert
+    db = get_new_session()
+    try:
+        claim = db.query(Claim).filter(Claim.id == claim_id).first()
+        if not claim:
+            return {"error": "Claim not found"}
+        alerts = [{"rule_id": a.rule_id, "rule_name": a.rule_name, "severity": a.severity,
+                    "description": a.description, "score_impact": a.score_impact}
+                   for a in (claim.fraud_alerts or [])]
+        return {
+            "claim_id": claim.id, "claim_reference": claim.claim_reference,
+            "scores": {"fraud_score": claim.fraud_score, "risk_score": claim.risk_score,
+                        "confidence_score": claim.confidence_score},
+            "production_scores": {"hard_rule_violated": claim.hard_rule_violated,
+                                   "soft_rule_score": claim.soft_rule_score,
+                                   "ml_fraud_probability": claim.ml_fraud_probability},
+            "image_fraud": {"duplicate_image_detected": claim.duplicate_image_detected},
+            "triggered_alerts": alerts, "alerts_count": len(alerts),
+            "decision": claim.status, "fraud_cleared": claim.fraud_cleared,
+        }
+    finally:
+        db.close()
+
+
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "version": "2.0.0", "system": "ClaimIQ Enterprise"}
+    return {"status": "healthy", "version": "3.0.0", "system": "ClaimIQ Enterprise"}
 
 
 if __name__ == "__main__":

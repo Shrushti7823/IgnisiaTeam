@@ -55,13 +55,13 @@ def get_review_queue(
     Returns claims ordered by fraud score (highest risk first).
     """
     claims = db.query(Claim).filter(
-        Claim.status == "manual_review"
+        Claim.status.in_(["manual_review", "pending_admin_approval"])
     ).order_by(
         Claim.fraud_score.desc()
     ).offset(skip).limit(limit).all()
 
     return {
-        "total": db.query(Claim).filter(Claim.status == "manual_review").count(),
+        "total": db.query(Claim).filter(Claim.status.in_(["manual_review", "pending_admin_approval"])).count(),
         "claims": [
             {
                 "id": c.id,
@@ -210,7 +210,7 @@ def submit_review(
     if not claim:
         raise HTTPException(status_code=404, detail="Claim not found")
 
-    if claim.status not in ["manual_review", "submitted"]:
+    if claim.status not in ["manual_review", "submitted", "pending_admin_approval"]:
         raise HTTPException(
             status_code=400,
             detail=f"Claim is in '{claim.status}' state — cannot review"

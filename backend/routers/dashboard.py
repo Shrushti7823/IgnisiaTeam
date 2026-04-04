@@ -27,6 +27,7 @@ def dashboard_stats(
     approved        = db.query(Claim).filter(Claim.status == "approved").count()
     rejected        = db.query(Claim).filter(Claim.status == "rejected").count()
     manual_review   = db.query(Claim).filter(Claim.status == "manual_review").count()
+    pending_approval = db.query(Claim).filter(Claim.status == "pending_admin_approval").count()
     pending         = db.query(Claim).filter(Claim.status.in_(["submitted", "document_verification", "fraud_analysis", "risk_scoring", "decision_engine"])).count()
     stp_approved    = db.query(Claim).filter(Claim.auto_decided == True, Claim.status == "approved").count()
 
@@ -91,6 +92,7 @@ def dashboard_stats(
             "approved":        approved,
             "rejected":        rejected,
             "manual_review":   manual_review,
+            "pending_admin_approval": pending_approval,
             "pending":         pending,
             "fraud_flagged":   fraud_flagged,
             "stp_rate":        stp_rate,
@@ -150,7 +152,7 @@ def user_stats(
     claims = db.query(Claim).filter(Claim.user_id == current_user.id).all()
     total = len(claims)
     approved = sum(1 for c in claims if c.status == "approved")
-    pending  = sum(1 for c in claims if c.status in ["submitted", "eligibility_check", "document_review", "document_verification", "fraud_check", "fraud_analysis", "risk_assessment", "risk_scoring", "decision_engine", "manual_review"])
+    pending  = sum(1 for c in claims if c.status in ["submitted", "eligibility_check", "document_review", "document_verification", "fraud_check", "fraud_analysis", "risk_assessment", "risk_scoring", "decision_engine", "manual_review", "pending_admin_approval"])
     rejected = sum(1 for c in claims if c.status == "rejected")
     total_approved_amount = sum(c.approved_amount for c in claims if c.status == "approved")
 

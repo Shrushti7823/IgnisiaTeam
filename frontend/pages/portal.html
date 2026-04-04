@@ -49,6 +49,12 @@
       border-color: #a7f3d0
     }
 
+    .status-pending_admin_approval {
+      background: #faf5ff;
+      color: #7c3aed;
+      border-color: #c4b5fd
+    }
+
     .fade-in {
       animation: fadeIn .5s ease
     }
@@ -252,14 +258,123 @@
           </div>
         </div>
       </div>
-      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
-        <h3 class="font-bold mb-4 text-gray-800">Recent Claims</h3>
-        <div id="recentClaims" class="space-y-3">
-          <div class="text-gray-500 text-sm">Loading...</div>
+
+      <!-- ── CHARTS ROW ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <h3 class="font-bold mb-4 text-sm text-gray-800">Claims by Status</h3>
+          <canvas id="userStatusChart" height="200"></canvas>
         </div>
-        <button onclick="showSection('submit')"
-          class="mt-4 w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20">+
-          File New Claim</button>
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <h3 class="font-bold mb-4 text-sm text-gray-800">Claim Amounts</h3>
+          <canvas id="userAmountsChart" height="200"></canvas>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <h3 class="font-bold mb-4 text-sm text-gray-800">Fraud & Risk Scores</h3>
+          <canvas id="userScoresChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- ── AI PIPELINE ARCHITECTURE ── -->
+      <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8">
+        <h3 class="font-bold mb-2 text-gray-800">🔬 How ClaimIQ Processes Your Claim</h3>
+        <p class="text-gray-500 text-sm mb-6">Every claim passes through our 6-stage AI pipeline in real-time</p>
+        <div class="flex items-start justify-between gap-1 overflow-x-auto pb-2" id="pipelineDiagram">
+          <!-- Stage 1 -->
+          <div class="flex flex-col items-center min-w-[110px] group">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-xl shadow-lg shadow-blue-500/25 group-hover:scale-110 transition">📋</div>
+            <div class="text-xs font-bold mt-2 text-blue-700">1. Submit</div>
+            <div class="text-[10px] text-gray-500 text-center mt-1 leading-tight">Claim details<br>& documents</div>
+          </div>
+          <div class="flex-1 flex items-center justify-center pt-6"><div class="h-0.5 w-full bg-gradient-to-r from-blue-400 to-cyan-400 rounded"></div><span class="text-gray-400 text-lg -ml-1">›</span></div>
+          <!-- Stage 2 -->
+          <div class="flex flex-col items-center min-w-[110px] group">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center text-xl shadow-lg shadow-cyan-500/25 group-hover:scale-110 transition">📄</div>
+            <div class="text-xs font-bold mt-2 text-cyan-700">2. OCR & Verify</div>
+            <div class="text-[10px] text-gray-500 text-center mt-1 leading-tight">Text extraction<br>& doc classification</div>
+          </div>
+          <div class="flex-1 flex items-center justify-center pt-6"><div class="h-0.5 w-full bg-gradient-to-r from-cyan-400 to-orange-400 rounded"></div><span class="text-gray-400 text-lg -ml-1">›</span></div>
+          <!-- Stage 3 -->
+          <div class="flex flex-col items-center min-w-[110px] group">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl shadow-lg shadow-orange-500/25 group-hover:scale-110 transition">🔍</div>
+            <div class="text-xs font-bold mt-2 text-orange-700">3. Fraud Check</div>
+            <div class="text-[10px] text-gray-500 text-center mt-1 leading-tight">Hard rules + Soft<br>rules + ML model</div>
+          </div>
+          <div class="flex-1 flex items-center justify-center pt-6"><div class="h-0.5 w-full bg-gradient-to-r from-orange-400 to-purple-400 rounded"></div><span class="text-gray-400 text-lg -ml-1">›</span></div>
+          <!-- Stage 4 -->
+          <div class="flex flex-col items-center min-w-[110px] group">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-xl shadow-lg shadow-purple-500/25 group-hover:scale-110 transition">📊</div>
+            <div class="text-xs font-bold mt-2 text-purple-700">4. Risk Score</div>
+            <div class="text-[10px] text-gray-500 text-center mt-1 leading-tight">Eligibility &<br>settlement calc</div>
+          </div>
+          <div class="flex-1 flex items-center justify-center pt-6"><div class="h-0.5 w-full bg-gradient-to-r from-purple-400 to-amber-400 rounded"></div><span class="text-gray-400 text-lg -ml-1">›</span></div>
+          <!-- Stage 5 -->
+          <div class="flex flex-col items-center min-w-[110px] group">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-xl shadow-lg shadow-amber-500/25 group-hover:scale-110 transition">⚖️</div>
+            <div class="text-xs font-bold mt-2 text-amber-700">5. Decision</div>
+            <div class="text-[10px] text-gray-500 text-center mt-1 leading-tight">Auto-approve<br>or human review</div>
+          </div>
+          <div class="flex-1 flex items-center justify-center pt-6"><div class="h-0.5 w-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded"></div><span class="text-gray-400 text-lg -ml-1">›</span></div>
+          <!-- Stage 6 -->
+          <div class="flex flex-col items-center min-w-[110px] group">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-xl shadow-lg shadow-emerald-500/25 group-hover:scale-110 transition">💸</div>
+            <div class="text-xs font-bold mt-2 text-emerald-700">6. Settlement</div>
+            <div class="text-[10px] text-gray-500 text-center mt-1 leading-tight">Payout &<br>audit logged</div>
+          </div>
+        </div>
+        <!-- Pipeline details accordion -->
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-6">
+          <div class="bg-blue-50 rounded-xl p-3.5 border border-blue-200">
+            <div class="text-xs font-bold text-blue-700 mb-1">🤖 Real OCR Engine</div>
+            <div class="text-[11px] text-blue-600/80">pdfplumber + Tesseract extracts text, amounts, dates, provider names from uploaded PDFs & images</div>
+          </div>
+          <div class="bg-orange-50 rounded-xl p-3.5 border border-orange-200">
+            <div class="text-xs font-bold text-orange-700 mb-1">⚖️ Dual Rule Engine</div>
+            <div class="text-[11px] text-orange-600/80">5 hard rules (instant reject) + 12 soft rules (weighted scoring) + ML model (0-1 probability)</div>
+          </div>
+          <div class="bg-purple-50 rounded-xl p-3.5 border border-purple-200">
+            <div class="text-xs font-bold text-purple-700 mb-1">🖼️ Image Fraud Detection</div>
+            <div class="text-[11px] text-purple-600/80">pHash/dHash duplicate detection, signature & stamp presence analysis across all claims</div>
+          </div>
+          <div class="bg-emerald-50 rounded-xl p-3.5 border border-emerald-200">
+            <div class="text-xs font-bold text-emerald-700 mb-1">⚡ STP Auto-Approve</div>
+            <div class="text-[11px] text-emerald-600/80">Low-risk claims auto-approved with zero human intervention via Straight-Through Processing</div>
+          </div>
+          <div class="bg-amber-50 rounded-xl p-3.5 border border-amber-200">
+            <div class="text-xs font-bold text-amber-700 mb-1">🧑‍⚖️ Human-in-the-Loop</div>
+            <div class="text-[11px] text-amber-600/80">Medium-risk claims sent to admin reviewers with full AI explanation before final decision</div>
+          </div>
+          <div class="bg-cyan-50 rounded-xl p-3.5 border border-cyan-200">
+            <div class="text-xs font-bold text-cyan-700 mb-1">🧠 Explainable AI</div>
+            <div class="text-[11px] text-cyan-600/80">Every decision comes with factors, risk breakdown, bullet-point explanations & recommendations</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RECENT CLAIMS + FILE UPLOAD CTA ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <h3 class="font-bold mb-4 text-gray-800">Recent Claims</h3>
+          <div id="recentClaims" class="space-y-3">
+            <div class="text-gray-500 text-sm">Loading...</div>
+          </div>
+        </div>
+        <div class="bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl p-5 border border-indigo-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold mb-2 text-gray-800">📎 Submit a New Claim</h3>
+            <p class="text-gray-500 text-sm mb-4">Upload PDFs, images (JPG/PNG) — our AI will extract data via OCR, detect fraud, and process automatically.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-600">📄 PDF</span>
+              <span class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-600">🖼️ JPG/PNG</span>
+              <span class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-600">🏥 Medical</span>
+              <span class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-600">🚗 Vehicle</span>
+              <span class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-600">🏠 Property</span>
+            </div>
+          </div>
+          <button onclick="showSection('submit')"
+            class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20">+
+            File New Claim & Upload Documents</button>
+        </div>
       </div>
     </section>
 
@@ -331,22 +446,34 @@
       <!-- Step 2: Upload -->
       <div id="uploadStep" class="hidden bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
         <h3 class="font-bold mb-2 text-gray-800">Upload Supporting Documents</h3>
-        <p class="text-gray-500 text-sm mb-4">Upload each required document below. Our AI will verify and classify the document content automatically.</p>
-        <!-- Per-document upload slots -->
-        <div id="docUploadSlots" class="space-y-3 mb-5"></div>
-        <!-- Additional (optional) document upload -->
-        <div class="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-5">
-          <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">📎 Additional Documents (Optional)</div>
-          <div class="flex items-center gap-3">
-            <input id="extraDocFile" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="previewExtraFile()" />
-            <button onclick="document.getElementById('extraDocFile').click()"
-              class="bg-white hover:bg-gray-100 text-gray-700 text-sm font-semibold px-4 py-2 rounded-lg transition border border-gray-200">Choose File</button>
-            <div id="extraFilePreview" class="text-sm text-blue-600 font-medium hidden"></div>
-            <button onclick="uploadExtraDoc()" id="extraUploadBtn"
-              class="ml-auto bg-gray-600 hover:bg-gray-500 text-white text-sm font-bold px-5 py-2 rounded-lg transition disabled:opacity-40"
-              disabled>Upload</button>
+        <p class="text-gray-500 text-sm mb-4">Upload documents for AI-powered OCR verification & fraud detection. Required docs are based on your claim type.</p>
+        <!-- Required docs checklist -->
+        <div id="requiredDocsChecklist" class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5"></div>
+        <!-- Drag & Drop Upload Zone -->
+        <div id="dropZone"
+          class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center mb-4 hover:border-blue-400 hover:bg-blue-50/30 transition-colors cursor-pointer"
+          ondragover="event.preventDefault();this.classList.add('border-blue-500','bg-blue-50')"
+          ondragleave="this.classList.remove('border-blue-500','bg-blue-50')" ondrop="handleDrop(event)">
+          <div class="text-3xl mb-2">📁</div>
+          <p class="text-gray-500 text-sm mb-3">Drag & drop files here or click to browse</p>
+          <div class="flex items-center gap-3 justify-center flex-wrap">
+            <input id="docFile" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="previewFile()" />
+            <button onclick="document.getElementById('docFile').click()"
+              class="bg-white hover:bg-gray-100 text-gray-700 text-sm font-semibold px-4 py-2.5 rounded-lg transition border border-gray-200 shadow-sm">📎 Choose File</button>
+            <select id="docType" class="bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 shadow-sm">
+              <option value="photos">📷 Photos</option>
+              <option value="invoice">🧾 Invoice</option>
+              <option value="police_report">🚔 Police Report</option>
+              <option value="medical_bill">🏥 Medical Bill</option>
+              <option value="id_proof">🪪 ID Proof</option>
+              <option value="booking_proof">✈️ Booking Proof</option>
+            </select>
+            <button onclick="uploadDoc()" id="uploadBtn"
+              class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition shadow-sm disabled:opacity-40"
+              disabled>⬆ Upload & Analyze</button>
           </div>
-          <p class="text-gray-400 text-xs mt-2">AI will auto-detect this document's type from its content</p>
+          <div id="filePreview" class="hidden mt-3 text-sm text-blue-600 font-medium"></div>
+          <p class="text-gray-400 text-xs mt-3">AI will run OCR extraction, document classification & image fraud detection on each upload</p>
         </div>
         <!-- Uploaded docs list with OCR results -->
         <div id="uploadedDocs" class="space-y-2 mb-5"></div>
@@ -478,6 +605,7 @@
     }
 
     // ── OVERVIEW ──
+    let userStatusChart, userAmountsChart, userScoresChart;
     async function loadOverview() {
       try {
         const res = await authFetch('/api/dashboard/my-stats'); const d = await res.json();
@@ -488,13 +616,78 @@
         document.getElementById('policyNum').textContent = d.policy_number || '–';
         document.getElementById('policyType').textContent = d.policy_type || '';
         document.getElementById('policyLimit').textContent = `$${(d.policy_limit || 0).toLocaleString()}`;
-      } catch (e) { } loadRecentClaims();
+      } catch (e) { }
+      loadRecentClaims();
+      loadUserCharts();
+    }
+    async function loadUserCharts() {
+      try {
+        const res = await authFetch('/api/claims/my');
+        const claims = await res.json();
+        if (!claims.length) return;
+
+        // ── Status Doughnut Chart ──
+        const statusCounts = { approved: 0, rejected: 0, pending: 0, review: 0 };
+        claims.forEach(c => {
+          if (c.status === 'approved') statusCounts.approved++;
+          else if (c.status === 'rejected') statusCounts.rejected++;
+          else if (c.status === 'manual_review' || c.status === 'pending_admin_approval') statusCounts.review++;
+          else statusCounts.pending++;
+        });
+        if (userStatusChart) userStatusChart.destroy();
+        userStatusChart = new Chart(document.getElementById('userStatusChart'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Approved', 'Rejected', 'Under Review', 'Processing'],
+            datasets: [{ data: [statusCounts.approved, statusCounts.rejected, statusCounts.review, statusCounts.pending],
+              backgroundColor: ['#059669','#dc2626','#d97706','#6366f1'], borderWidth: 0, borderRadius: 6 }]
+          },
+          options: { cutout: '72%', plugins: { legend: { labels: { color: '#6b7280', padding: 12, font: { size: 11 } } } }, responsive: true }
+        });
+
+        // ── Amounts Bar Chart ──
+        const claimLabels = claims.slice(0, 6).map(c => c.claim_reference?.split('-').pop() || '#');
+        const claimAmounts = claims.slice(0, 6).map(c => c.claim_amount);
+        const approvedAmounts = claims.slice(0, 6).map(c => c.approved_amount || 0);
+        if (userAmountsChart) userAmountsChart.destroy();
+        userAmountsChart = new Chart(document.getElementById('userAmountsChart'), {
+          type: 'bar',
+          data: {
+            labels: claimLabels,
+            datasets: [
+              { label: 'Claimed', data: claimAmounts, backgroundColor: '#818cf8', borderRadius: 6, borderSkipped: false },
+              { label: 'Approved', data: approvedAmounts, backgroundColor: '#34d399', borderRadius: 6, borderSkipped: false }
+            ]
+          },
+          options: { scales: { y: { grid: { color: '#f1f5f9' }, ticks: { color: '#6b7280', callback: v => '$' + v.toLocaleString() } }, x: { grid: { display: false }, ticks: { color: '#6b7280' } } }, plugins: { legend: { labels: { color: '#6b7280', font: { size: 10 } } } }, responsive: true }
+        });
+
+        // ── Fraud & Risk Radar Chart ──
+        const latestClaims = claims.slice(0, 5);
+        const fraudScores = latestClaims.map(c => c.fraud_score || 0);
+        const riskScores = latestClaims.map(c => c.risk_score || 0);
+        const confidenceScores = latestClaims.map(c => c.confidence_score || 0);
+        const radarLabels = latestClaims.map(c => c.claim_reference?.split('-').pop() || '#');
+        if (userScoresChart) userScoresChart.destroy();
+        userScoresChart = new Chart(document.getElementById('userScoresChart'), {
+          type: 'radar',
+          data: {
+            labels: radarLabels,
+            datasets: [
+              { label: 'Fraud Score', data: fraudScores, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 2, pointRadius: 3 },
+              { label: 'Risk Score', data: riskScores, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 2, pointRadius: 3 },
+              { label: 'Confidence', data: confidenceScores, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', borderWidth: 2, pointRadius: 3 }
+            ]
+          },
+          options: { scales: { r: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' }, ticks: { display: false }, pointLabels: { color: '#6b7280', font: { size: 10 } } } }, plugins: { legend: { labels: { color: '#6b7280', font: { size: 10 } } } }, responsive: true }
+        });
+      } catch (e) { console.error('Chart error', e); }
     }
     async function loadRecentClaims() {
       try {
         const res = await authFetch('/api/claims/my'); const claims = await res.json(); const c = document.getElementById('recentClaims');
         if (!claims.length) { c.innerHTML = '<p class="text-gray-500 text-sm">No claims yet. Submit your first claim!</p>'; return }
-        c.innerHTML = claims.slice(0, 3).map(c => `<div class="flex items-center justify-between bg-gray-50 rounded-xl p-3.5 border border-gray-200 hover:border-indigo-300 transition cursor-pointer" onclick="openClaimDetail(${c.id})">
+        c.innerHTML = claims.slice(0, 5).map(c => `<div class="flex items-center justify-between bg-gray-50 rounded-xl p-3.5 border border-gray-200 hover:border-indigo-300 transition cursor-pointer" onclick="openClaimDetail(${c.id})">
       <div><div class="font-semibold text-sm text-gray-800">${c.claim_reference}</div><div class="text-gray-500 text-xs capitalize">${c.claim_type} · $${c.claim_amount.toLocaleString()}</div></div>
       <span class="status-${c.status} text-xs font-bold px-2.5 py-1 rounded-full border capitalize">${c.status.replace(/_/g, ' ')}</span></div>`).join('');
       } catch (e) { }
@@ -579,144 +772,63 @@
     function renderRequiredDocsChecklist() {
       const ct = document.getElementById('claimType').value;
       const req = REQUIRED_DOCS[ct] || ['id_proof'];
-      const el = document.getElementById('docUploadSlots');
+      const el = document.getElementById('requiredDocsChecklist');
       el.innerHTML = req.map(d => {
         const done = uploadedDocTypes.includes(d);
-        const slotId = `slot-${d}`;
-        const inputId = `file-${d}`;
-        if (done) {
-          // Completed slot
-          return `<div id="${slotId}" class="bg-green-50 border border-green-200 rounded-xl p-4 transition-all">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-lg">✅</div>
-              <div class="flex-1">
-                <div class="font-semibold text-sm text-green-800">${DOC_LABELS[d] || d}</div>
-                <div class="text-green-600 text-xs font-medium">Uploaded & verified by AI</div>
-              </div>
-              <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full border border-green-200">Done</span>
-            </div>
-          </div>`;
-        }
-        // Pending upload slot
-        return `<div id="${slotId}" class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4 hover:border-blue-400 hover:bg-blue-50/30 transition-all">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-lg">${DOC_LABELS[d]?.split(' ')[0] || '📄'}</div>
-            <div class="flex-1">
-              <div class="font-semibold text-sm text-gray-800">${DOC_LABELS[d] || d}</div>
-              <div class="text-gray-400 text-xs">Required — click to upload PDF or image</div>
-            </div>
-            <input id="${inputId}" type="file" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="handleSlotFile('${d}')" />
-            <button onclick="document.getElementById('${inputId}').click()" id="btn-${d}"
-              class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-5 py-2 rounded-lg transition shadow-sm">Choose File</button>
-          </div>
-          <div id="preview-${d}" class="hidden mt-3 ml-13 text-sm text-blue-600 font-medium"></div>
-          <div id="uploading-${d}" class="hidden mt-3 ml-13">
-            <div class="flex items-center gap-2 text-sm text-blue-600"><div class="animate-spin w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full"></div>Uploading & analyzing with AI...</div>
-          </div>
-        </div>`;
+        return `<div class="flex items-center gap-2 ${done ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'} border rounded-xl px-3 py-2.5 text-sm"><span>${done ? '✅' : '⬜'}</span><span class="${done ? 'text-green-700' : 'text-gray-600'}">${DOC_LABELS[d] || d}</span>${done ? '<span class="ml-auto text-green-600 text-xs font-bold">Done</span>' : '<span class="ml-auto text-gray-400 text-xs">Required</span>'}</div>`;
       }).join('');
       // Check missing docs warning
       const missing = req.filter(d => !uploadedDocTypes.includes(d));
       document.getElementById('missingDocsWarn').classList.toggle('hidden', missing.length === 0);
     }
+    function previewFile() {
+      const file = document.getElementById('docFile').files[0];
+      const preview = document.getElementById('filePreview');
+      const btn = document.getElementById('uploadBtn');
+      if (file) { preview.textContent = `📎 ${file.name} (${(file.size / 1024).toFixed(0)} KB)`; preview.classList.remove('hidden'); btn.disabled = false }
+      else { preview.classList.add('hidden'); btn.disabled = true }
+    }
+    function handleDrop(e) { e.preventDefault(); e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50'); const dt = e.dataTransfer; if (dt.files.length) { document.getElementById('docFile').files = dt.files; previewFile() } }
 
-    // Handle file selection for a specific required doc slot
-    async function handleSlotFile(docType) {
-      const fileInput = document.getElementById(`file-${docType}`);
-      const file = fileInput.files[0];
-      if (!file || !currentClaimId) return;
-
-      // Show uploading state
-      const btn = document.getElementById(`btn-${docType}`);
-      const uploadingEl = document.getElementById(`uploading-${docType}`);
-      btn.textContent = 'Uploading...';
-      btn.disabled = true;
-      uploadingEl.classList.remove('hidden');
-
+    async function uploadDoc() {
+      if (!currentClaimId) return; const file = document.getElementById('docFile').files[0]; if (!file) return;
+      const docType = document.getElementById('docType').value;
+      document.getElementById('uploadBtn').textContent = '⏳ Analyzing...'; document.getElementById('uploadBtn').disabled = true;
       try {
-        const form = new FormData();
-        form.append('file', file);
-        form.append('doc_type', docType);
-        const res = await fetch(`${API}/api/documents/upload/${currentClaimId}`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: form
-        });
+        const form = new FormData(); form.append('file', file); form.append('doc_type', docType);
+        const res = await fetch(`${API}/api/documents/upload/${currentClaimId}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: form });
         const d = await res.json();
-        // The backend auto-classifies: use the AI-detected type
         const actualType = d.doc_type || docType;
         uploadedDocTypes.push(actualType);
-
-        // Build result card
         const ocrPct = (d.ocr_confidence * 100).toFixed(0);
         const verified = d.is_verified;
         let classifyNote = '';
         if (d.auto_classified) {
-          classifyNote = `<div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">🤖 <strong>AI reclassified:</strong> Your file was detected as <strong>${DOC_LABELS[actualType] || actualType}</strong> instead of ${DOC_LABELS[docType] || docType}</div>`;
+          classifyNote = `<div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">🤖 <strong>AI reclassified:</strong> Detected as <strong>${DOC_LABELS[actualType] || actualType}</strong></div>`;
         }
         let fieldsHtml = '';
         if (d.extracted_fields && Object.keys(d.extracted_fields).length) {
-          fieldsHtml = `<div class="flex flex-wrap gap-2 mt-2">${Object.entries(d.extracted_fields).filter(([k]) => !['all_amounts'].includes(k)).slice(0, 4).map(([k, v]) => `<span class="bg-gray-50 rounded-lg px-2 py-1 text-xs text-gray-700 border border-gray-100"><span class="text-gray-500">${k}:</span> ${typeof v === 'number' ? '$' + v.toLocaleString() : v}</span>`).join('')}</div>`;
+          fieldsHtml = `<div class="flex flex-wrap gap-2 mt-2">${Object.entries(d.extracted_fields).filter(([k]) => !['all_amounts'].includes(k)).slice(0, 5).map(([k, v]) => `<span class="bg-gray-50 rounded-lg px-2 py-1 text-xs text-gray-700 border border-gray-100"><span class="text-gray-500">${k}:</span> ${typeof v === 'number' ? '$' + v.toLocaleString() : v}</span>`).join('')}</div>`;
         }
-
+        let fraudHtml = '';
+        if (d.image_fraud && (d.image_fraud.is_duplicate || d.image_fraud.fraud_signals?.length)) {
+          const signals = d.image_fraud.fraud_signals || [];
+          fraudHtml = `<div class="mt-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-700">🚨 <strong>Image Fraud:</strong> ${d.image_fraud.is_duplicate ? 'Duplicate image detected! ' : ''}${signals.map(s => s.description || s.type).join(', ')}</div>`;
+        }
         document.getElementById('uploadedDocs').innerHTML += `<div class="bg-white border ${verified ? 'border-green-200' : 'border-amber-200'} rounded-xl p-3.5 shadow-sm">
           <div class="flex items-center gap-2 mb-1">
             <span class="text-lg">${verified ? '✅' : '⚠️'}</span>
             <span class="font-semibold text-sm text-gray-800">${file.name}</span>
             <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200">${DOC_LABELS[actualType] || actualType}</span>
             <span class="ml-auto text-xs font-bold ${ocrPct > 70 ? 'text-green-600' : ocrPct > 40 ? 'text-amber-600' : 'text-red-600'}">OCR: ${ocrPct}%</span>
-          </div>${classifyNote}${fieldsHtml}</div>`;
-
+          </div>
+          ${d.image_fraud ? `<div class="flex items-center gap-3 mt-1 text-xs text-gray-500"><span>🔍 Signature: ${d.image_fraud.has_signature ? '✅' : '❌'}</span><span>📄 Stamp: ${d.image_fraud.has_stamp ? '✅' : '❌'}</span><span>🔄 Duplicate: ${d.image_fraud.is_duplicate ? '🚨 Yes' : '✅ No'}</span></div>` : ''}
+          ${classifyNote}${fieldsHtml}${fraudHtml}</div>`;
         renderRequiredDocsChecklist();
+        document.getElementById('docFile').value = ''; document.getElementById('filePreview').classList.add('hidden');
       } catch (e) { console.error(e) }
+      document.getElementById('uploadBtn').textContent = '⬆ Upload & Analyze'; document.getElementById('uploadBtn').disabled = true;
     }
-
-    // Extra (optional) document upload
-    function previewExtraFile() {
-      const file = document.getElementById('extraDocFile').files[0];
-      const preview = document.getElementById('extraFilePreview');
-      const btn = document.getElementById('extraUploadBtn');
-      if (file) { preview.textContent = `📎 ${file.name} (${(file.size / 1024).toFixed(0)} KB)`; preview.classList.remove('hidden'); btn.disabled = false }
-      else { preview.classList.add('hidden'); btn.disabled = true }
-    }
-    async function uploadExtraDoc() {
-      if (!currentClaimId) return;
-      const file = document.getElementById('extraDocFile').files[0];
-      if (!file) return;
-      const btn = document.getElementById('extraUploadBtn');
-      btn.textContent = 'Uploading...'; btn.disabled = true;
-      try {
-        const form = new FormData();
-        form.append('file', file);
-        form.append('doc_type', 'other');
-        const res = await fetch(`${API}/api/documents/upload/${currentClaimId}`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: form
-        });
-        const d = await res.json();
-        const actualType = d.doc_type || 'other';
-        uploadedDocTypes.push(actualType);
-        const ocrPct = (d.ocr_confidence * 100).toFixed(0);
-        const verified = d.is_verified;
-        let classifyNote = '';
-        if (d.auto_classified && actualType !== 'other') {
-          classifyNote = `<div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">🤖 <strong>AI detected:</strong> This document was classified as <strong>${DOC_LABELS[actualType] || actualType}</strong></div>`;
-        }
-        document.getElementById('uploadedDocs').innerHTML += `<div class="bg-white border ${verified ? 'border-green-200' : 'border-amber-200'} rounded-xl p-3.5 shadow-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-lg">${verified ? '✅' : '⚠️'}</span>
-            <span class="font-semibold text-sm text-gray-800">${file.name}</span>
-            <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200">${DOC_LABELS[actualType] || actualType}</span>
-            <span class="ml-auto text-xs font-bold ${ocrPct > 70 ? 'text-green-600' : ocrPct > 40 ? 'text-amber-600' : 'text-red-600'}">OCR: ${ocrPct}%</span>
-          </div>${classifyNote}</div>`;
-        renderRequiredDocsChecklist();
-        document.getElementById('extraDocFile').value = ''; document.getElementById('extraFilePreview').classList.add('hidden');
-      } catch (e) { console.error(e) }
-      btn.textContent = 'Upload'; btn.disabled = true;
-    }
-
-    function handleDrop(e) { e.preventDefault(); }
 
     async function submitClaimStep1() {
       const claimType = document.getElementById('claimType').value, incidentDate = document.getElementById('incidentDate').value, claimAmount = parseFloat(document.getElementById('claimAmount').value), desc = document.getElementById('incidentDesc').value.trim();
@@ -733,7 +845,19 @@
     function submitForProcessing() {
       document.getElementById('uploadStep').classList.add('hidden'); document.getElementById('processingStep').classList.remove('hidden');
       document.getElementById('step3ind').querySelector('.step-circle').className = 'step-circle w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-blue-500/30';
-      document.getElementById('step3ind').querySelector('.step-label').className = 'step-label text-sm font-semibold text-gray-800'; startPipelinePolling();
+      document.getElementById('step3ind').querySelector('.step-label').className = 'step-label text-sm font-semibold text-gray-800';
+      // Trigger the pipeline AFTER documents are uploaded
+      authFetch(`/api/claims/trigger-pipeline/${currentClaimId}`, { method: 'POST' })
+        .then(res => {
+          if (!res.ok) return res.json().then(d => { throw new Error(d.detail || 'Failed to start pipeline') });
+          startPipelinePolling();
+        })
+        .catch(e => {
+          console.error(e);
+          addPipelineLog('Failed to start pipeline — ' + e.message, 'error');
+          // Show a retry button
+          document.getElementById('stageDetailCard').innerHTML = `<div class="text-center"><div class="text-2xl mb-2">❌</div><div class="text-sm text-red-600 mb-3">${e.message}</div><button onclick="submitForProcessing()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-2 rounded-lg transition">🔄 Retry Pipeline</button></div>`;
+        });
     }
 
     // ── PREMIUM PIPELINE VIZ ──
@@ -807,13 +931,52 @@
       card.innerHTML = html;
     }
     function showPipelineResult(data) {
-      const statusColor = data.decision === 'approved' ? 'green' : data.decision === 'rejected' ? 'red' : 'yellow';
-      const icon = data.decision === 'approved' ? '🎉' : data.decision === 'rejected' ? '❌' : '⏳';
+      let statusColor, icon, statusLabel;
+      if (data.decision === 'approved') {
+        statusColor = 'green'; icon = '🎉'; statusLabel = 'Approved';
+      } else if (data.decision === 'rejected') {
+        statusColor = 'red'; icon = '❌'; statusLabel = 'Rejected';
+      } else if (data.decision === 'pending_admin_approval') {
+        statusColor = 'purple'; icon = '⏳'; statusLabel = 'Pending Admin Approval';
+      } else {
+        statusColor = 'yellow'; icon = '⏳'; statusLabel = data.decision?.replace(/_/g, ' ') || 'Processing';
+      }
       const ex = data.explainability_report;
       let explainSection = '';
       if (ex && ex.bullet_points) { explainSection = `<div class="bg-gray-50 rounded-xl p-5 border border-gray-200 text-left mt-4"><h4 class="font-bold text-sm mb-3 text-gray-800">🧠 AI Explanation</h4><p class="text-gray-500 text-sm mb-3">${ex.summary || ''}</p>${ex.bullet_points.map(b => `<div class="text-sm py-1 text-gray-700">${b}</div>`).join('')}<div class="mt-3 bg-blue-50 rounded-lg px-4 py-2.5 text-sm text-blue-700">💡 ${ex.recommendation || ''}</div></div>` }
+      let adminNote = '';
+      if (data.decision === 'pending_admin_approval') {
+        adminNote = `<div class="mt-4 bg-purple-50 border border-purple-200 rounded-xl px-5 py-4 text-left">
+          <div class="flex items-center gap-2 mb-2"><span class="text-lg">🛡️</span><span class="font-bold text-sm text-purple-800">Sent to Admin for Final Decision</span></div>
+          <p class="text-purple-700 text-sm">Your claim has been fully analyzed by our AI pipeline. It is now awaiting the admin's final approval or rejection. You will be notified once a decision is made.</p>
+        </div>`;
+      }
       document.getElementById('resultBox').classList.remove('hidden');
-      document.getElementById('resultBox').innerHTML = `<div class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center"><div class="text-5xl mb-4">${icon}</div><h3 class="text-2xl font-black capitalize mb-2 text-${statusColor}-600">${data.decision.replace(/_/g, ' ')}</h3><div class="grid grid-cols-3 gap-3 mt-6 mb-4"><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Fraud Score</div><div class="font-black text-lg ${data.fraud_score > 70 ? 'text-red-600' : data.fraud_score > 40 ? 'text-amber-600' : 'text-green-600'}">${(data.fraud_score || 0).toFixed(0)}/100</div></div><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Confidence</div><div class="font-black text-lg text-blue-600">${(data.confidence_score || 0).toFixed(0)}%</div></div><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Approved</div><div class="font-black text-lg text-${statusColor}-600">$${(data.approved_amount || 0).toLocaleString()}</div></div></div>${explainSection}<button onclick="openClaimDetail(${currentClaimId})" class="mt-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-blue-500/20 mr-3">View Full Details</button><button onclick="showSection('claims')" class="mt-6 bg-gray-100 border border-gray-200 text-gray-700 font-medium px-8 py-3 rounded-xl transition hover:bg-gray-200">All Claims</button></div>`;
+      document.getElementById('resultBox').innerHTML = `<div class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm text-center"><div class="text-5xl mb-4">${icon}</div><h3 class="text-2xl font-black capitalize mb-2 text-${statusColor}-600">${statusLabel}</h3><div class="grid grid-cols-3 gap-3 mt-6 mb-4"><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Fraud Score</div><div class="font-black text-lg ${data.fraud_score > 70 ? 'text-red-600' : data.fraud_score > 40 ? 'text-amber-600' : 'text-green-600'}">${(data.fraud_score || 0).toFixed(0)}/100</div></div><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">Confidence</div><div class="font-black text-lg text-blue-600">${(data.confidence_score || 0).toFixed(0)}%</div></div><div class="bg-gray-50 rounded-xl p-4 border border-gray-100"><div class="text-xs text-gray-500">AI Suggested</div><div class="font-black text-lg text-${statusColor}-600">$${(data.approved_amount || 0).toLocaleString()}</div></div></div>${explainSection}${adminNote}<button onclick="openClaimDetail(${currentClaimId})" class="mt-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold px-8 py-3 rounded-xl transition shadow-lg shadow-blue-500/20 mr-3">View Full Details</button><button onclick="resetAndSubmitNew()" class="mt-6 bg-gray-100 border border-gray-200 text-gray-700 font-medium px-8 py-3 rounded-xl transition hover:bg-gray-200 mr-3">+ New Claim</button><button onclick="showSection('claims')" class="mt-6 bg-gray-100 border border-gray-200 text-gray-700 font-medium px-8 py-3 rounded-xl transition hover:bg-gray-200">All Claims</button></div>`;
+    }
+    function resetAndSubmitNew() {
+      // Reset all form state for a fresh submission
+      currentClaimId = null;
+      uploadedDocTypes = [];
+      document.getElementById('claimType').value = '';
+      document.getElementById('incidentDate').value = '';
+      document.getElementById('claimAmount').value = '';
+      document.getElementById('incidentDesc').value = '';
+      document.getElementById('uploadedDocs').innerHTML = '';
+      document.getElementById('pipelineLog').innerHTML = '';
+      document.getElementById('resultBox').innerHTML = '';
+      document.getElementById('resultBox').classList.add('hidden');
+      document.getElementById('processingStep').classList.add('hidden');
+      document.getElementById('uploadStep').classList.add('hidden');
+      document.getElementById('claimForm').classList.remove('hidden');
+      document.getElementById('formError').classList.add('hidden');
+      document.getElementById('requiredDocsPreview').classList.add('hidden');
+      // Reset step indicators
+      document.getElementById('step2ind').querySelector('.step-circle').className = 'step-circle w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400';
+      document.getElementById('step2ind').querySelector('.step-label').className = 'step-label text-sm text-gray-400';
+      document.getElementById('step3ind').querySelector('.step-circle').className = 'step-circle w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400';
+      document.getElementById('step3ind').querySelector('.step-label').className = 'step-label text-sm text-gray-400';
+      showSection('submit');
     }
     function showFormError(msg) { const b = document.getElementById('formError'); b.textContent = msg; b.classList.remove('hidden') }
 

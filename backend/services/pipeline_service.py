@@ -60,6 +60,27 @@ def run_pipeline_sync(claim_id: int, db: Session):
 
     delay = settings.PIPELINE_STAGE_DELAY
 
+    try:
+        _execute_pipeline(claim, user, db, delay)
+    except Exception as e:
+        print(f"[Pipeline] CRITICAL ERROR in pipeline for claim {claim_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        # Make sure the claim doesn't stay stuck
+        try:
+            claim.current_stage = "completed"
+            claim.status = "pending_admin_approval"
+            claim.settlement_notes = (claim.settlement_notes or "") + f" | Pipeline error: {str(e)[:200]}"
+            claim.processed_at = datetime.utcnow()
+            claim.stage_settled_at = datetime.utcnow()
+            db.commit()
+        except Exception:
+            pass
+
+
+def _execute_pipeline(claim, user, db, delay):
+    """Inner pipeline execution — separated so errors can be caught."""
+
     # ── STAGE 1: Submitted ──────────────────────────────────────────
     start = time.time()
     claim.current_stage = "submitted"
@@ -308,18 +329,20 @@ def run_pipeline_sync(claim_id: int, db: Session):
     db.commit()
 
     if stp_decision["decision"] == "auto_approved":
-        claim.status = "approved"
-        claim.payout_status = "processing"
-        claim.settled_at = datetime.utcnow()
+        claim.status = "pending_admin_approval"
+        claim.payout_status = "pending"
         claim.stage_settled_at = datetime.utcnow()
+        claim.settlement_notes = (claim.settlement_notes or "") + " | AI Recommendation: APPROVE"
     elif stp_decision["decision"] == "rejected":
-        claim.status = "rejected"
-        claim.payout_status = "rejected"
-        claim.approved_amount = 0.0
+        claim.status = "pending_admin_approval"
+        claim.payout_status = "pending"
         claim.stage_settled_at = datetime.utcnow()
+        claim.settlement_notes = (claim.settlement_notes or "") + " | AI Recommendation: REJECT"
     else:
-        claim.status = "manual_review"
+        claim.status = "pending_admin_approval"
+        claim.payout_status = "pending"
         claim.stage_settled_at = datetime.utcnow()
+        claim.settlement_notes = (claim.settlement_notes or "") + " | AI Recommendation: MANUAL REVIEW"
 
     claim.processed_at = datetime.utcnow()
 

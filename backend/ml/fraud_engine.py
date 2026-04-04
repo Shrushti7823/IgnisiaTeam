@@ -94,12 +94,14 @@ def evaluate_hard_rules(
     })
 
     # HARD_003: Missing mandatory documents
+    # NOTE: This is tracked but NOT a hard rejection — docs may be uploaded
+    # after claim creation in the 2-step portal flow. Missing docs are handled
+    # as a soft concern that leads to manual_review, not instant rejection.
     missing = [d for d in required_doc_types if d not in uploaded_doc_types]
-    docs_missing = len(missing) > 0
     results.append({
         "rule_id": "HARD_003", "name": "Missing Mandatory Documents",
-        "triggered": docs_missing,
-        "description": f"Missing: {', '.join(missing)}" if docs_missing
+        "triggered": False,  # Never hard-reject for missing docs
+        "description": f"Missing: {', '.join(missing)}" if missing
                        else "All mandatory documents present",
     })
 

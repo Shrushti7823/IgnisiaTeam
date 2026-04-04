@@ -21,6 +21,7 @@
     .status-manual_review { background: #fffbeb; color: #d97706; border-color: #fde68a; }
     .status-submitted  { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
     .status-completed  { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+    .status-pending_admin_approval { background: #faf5ff; color: #7c3aed; border-color: #c4b5fd; }
 
     .fade-in { animation: fadeIn 0.5s ease; }
     @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
@@ -147,6 +148,20 @@
         </div>
       </div>
 
+      <!-- Pending Admin Approval KPI -->
+      <div class="bg-purple-50 rounded-xl p-4 border border-purple-200 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-lg">🛡️</div>
+            <div>
+              <div class="text-xs text-purple-600 font-bold uppercase tracking-widest">Pending Your Approval</div>
+              <div id="kPendingApproval" class="text-xl font-black text-purple-700">–</div>
+            </div>
+          </div>
+          <button onclick="showTab('queue')" class="bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold px-4 py-2 rounded-lg transition shadow-sm">Review Now →</button>
+        </div>
+      </div>
+
       <!-- Charts row -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
@@ -185,6 +200,7 @@
         <select id="statusFilter" onchange="loadAllClaims()" class="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 shadow-sm focus:outline-none focus:border-indigo-400 transition">
           <option value="">All Statuses</option><option value="submitted">Submitted</option>
           <option value="approved">Approved</option><option value="rejected">Rejected</option><option value="manual_review">Manual Review</option>
+          <option value="pending_admin_approval">Pending Admin Approval</option>
         </select>
       </div>
       <div id="allClaimsList" class="space-y-3"></div>
@@ -197,10 +213,10 @@
       <div id="fraudList" class="space-y-3"></div>
     </div>
 
-    <!-- MANUAL QUEUE -->
+    <!-- MANUAL / ADMIN APPROVAL QUEUE -->
     <div id="tab-queue" class="hidden fade-in">
-      <h1 class="text-2xl font-bold mb-1 text-gray-800">Manual Review Queue</h1>
-      <p class="text-gray-500 text-sm mb-6">Claims awaiting adjuster decision</p>
+      <h1 class="text-2xl font-bold mb-1 text-gray-800">Claims Awaiting Your Decision</h1>
+      <p class="text-gray-500 text-sm mb-6">AI has analyzed these claims — review the AI overview and make the final decision</p>
       <div id="queueList" class="space-y-4"></div>
     </div>
 
@@ -410,6 +426,9 @@ async function loadOverview() {
       badge.classList.remove('hidden');
     }
 
+    // Pending admin approval count
+    document.getElementById('kPendingApproval').textContent = ov.pending_admin_approval || 0;
+
     // Status chart
     if (statusChart) statusChart.destroy();
     statusChart = new Chart(document.getElementById('statusChart'), {
@@ -467,7 +486,8 @@ async function loadAllClaims() {
   const url = `/api/claims/admin/all${filter ? '?status_filter='+filter : ''}`;
   try {
     const res = await authFetch(url);
-    const claims = await res.json();
+    const data = await res.json();
+    const claims = Array.isArray(data) ? data : [];
     document.getElementById('allClaimsList').innerHTML = claims.length ? claims.map(c => `
       <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm flex items-center gap-4 hover:border-indigo-300 hover:shadow-md transition cursor-pointer" onclick="viewClaimDetail(${c.id})">
         <div class="flex-1 min-w-0">
@@ -486,7 +506,7 @@ async function loadAllClaims() {
         </div>
         <span class="status-${c.status} text-xs font-bold px-3 py-1.5 rounded-full border capitalize w-28 text-center">${c.status.replace(/_/g,' ')}</span>
       </div>`).join('') : '<p class="text-gray-500 text-sm text-center py-10">No claims found</p>';
-  } catch(e) {}
+  } catch(e) { console.error('All claims error', e); }
 }
 
 async function loadFraudAlerts() {
@@ -518,29 +538,99 @@ async function resolveAlert(id) {
 
 async function loadQueue() {
   try {
-    const res = await authFetch('/api/claims/admin/all?status_filter=manual_review');
-    const claims = await res.json();
-    document.getElementById('queueList').innerHTML = claims.length ? claims.map(c => `
-      <div class="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
+    // Fetch both pending_admin_approval and manual_review claims
+    const [res1, res2] = await Promise.all([
+      authFetch('/api/claims/admin/all?status_filter=pending_admin_approval'),
+      authFetch('/api/claims/admin/all?status_filter=manual_review'),
+    ]);
+    const data1 = await res1.json();
+    const data2 = await res2.json();
+    // Handle API errors gracefully - responses may be error objects instead of arrays
+    const claims1 = Array.isArray(data1) ? data1 : [];
+    const claims2 = Array.isArray(data2) ? data2 : [];
+    const claims = [...claims1, ...claims2];
+
+    if (!claims.length) {
+      document.getElementById('queueList').innerHTML = '<div class="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm"><p class="text-emerald-600 font-bold">✅ No claims pending your approval</p></div>';
+      return;
+    }
+
+    // Fetch full details for each claim (AI overview)
+    const detailPromises = claims.map(c => authFetch(`/api/claims/${c.id}/details`).then(r => r.json()).catch(() => null));
+    const details = await Promise.all(detailPromises);
+
+    document.getElementById('queueList').innerHTML = claims.map((c, idx) => {
+      const d = details[idx];
+      const ex = d?.explainability;
+      const isPending = c.status === 'pending_admin_approval';
+      const borderColor = isPending ? 'border-purple-200' : 'border-amber-200';
+      const badgeClass = isPending ? 'text-purple-700 bg-purple-50 border-purple-200' : 'text-amber-700 bg-amber-50 border-amber-200';
+      const badgeIcon = isPending ? '🛡️' : '⏳';
+      const badgeText = isPending ? 'Pending Approval' : 'Manual Review';
+
+      // Extract AI recommendation from settlement notes
+      let aiRecommendation = 'Review Required';
+      let aiRecColor = 'text-gray-600';
+      const notes = c.settlement_notes || '';
+      if (notes.includes('AI Recommendation: APPROVE')) { aiRecommendation = '✅ AI Recommends: APPROVE'; aiRecColor = 'text-emerald-700'; }
+      else if (notes.includes('AI Recommendation: REJECT')) { aiRecommendation = '❌ AI Recommends: REJECT'; aiRecColor = 'text-red-700'; }
+      else if (notes.includes('AI Recommendation: MANUAL REVIEW')) { aiRecommendation = '⚠️ AI Recommends: MANUAL REVIEW'; aiRecColor = 'text-amber-700'; }
+
+      // AI Explanation section
+      let explainHTML = '';
+      if (ex) {
+        const bullets = (ex.bullet_points || []).slice(0, 4).map(b => `<div class="text-sm py-0.5 text-gray-700">${b}</div>`).join('');
+        const factors = (ex.factors || []).slice(0, 4).map(f => `<div class="flex items-center gap-1.5 text-xs py-1 border-b border-gray-100 last:border-0"><span class="${f.direction === 'POSITIVE' ? 'text-green-600' : 'text-red-600'} font-bold w-10">${f.impact}</span><span class="text-gray-700 flex-1">${f.factor}</span><span>${f.direction === 'POSITIVE' ? '✅' : '❌'}</span></div>`).join('');
+        explainHTML = `<div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mt-3">
+          <div class="flex items-center gap-2 mb-2"><span class="text-sm">🧠</span><span class="font-bold text-xs text-gray-800">AI Explanation</span><span class="text-xs text-gray-500">Confidence: ${(ex.confidence || 0).toFixed(0)}%</span></div>
+          <p class="text-gray-500 text-xs mb-2">${ex.summary || ''}</p>
+          ${bullets}
+          ${factors ? `<div class="mt-2 bg-white rounded-lg p-2.5 border border-gray-100">${factors}</div>` : ''}
+          ${ex.recommendation ? `<div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">💡 ${ex.recommendation}</div>` : ''}
+        </div>`;
+      }
+
+      // Documents section
+      const docs = d?.documents || [];
+      let docsHTML = '';
+      if (docs.length) {
+        docsHTML = `<div class="mt-3"><div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">📄 Documents (${docs.length})</div><div class="flex flex-wrap gap-2">${docs.map(doc => `<span class="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700 flex items-center gap-1">${doc.is_verified ? '✅' : '⚠️'} ${doc.file_name || doc.doc_type} <span class="text-gray-400">(OCR: ${((doc.ocr_confidence || 0) * 100).toFixed(0)}%)</span></span>`).join('')}</div></div>`;
+      }
+
+      return `<div class="bg-white rounded-2xl p-5 border ${borderColor} shadow-sm">
+        <div class="flex items-center justify-between mb-3">
           <div>
             <span class="font-mono text-indigo-600 font-bold">${c.claim_reference}</span>
             <span class="text-gray-500 text-sm ml-2 capitalize">${c.claim_type} · $${c.claim_amount.toLocaleString()}</span>
           </div>
-          <span class="text-amber-700 text-xs bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-bold">⏳ Manual Review</span>
+          <span class="${badgeClass} text-xs border px-3 py-1 rounded-full font-bold">${badgeIcon} ${badgeText}</span>
         </div>
-        <div class="grid grid-cols-3 gap-3 mb-4">
+
+        <!-- AI Recommendation Banner -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-3 border border-indigo-100 mb-3">
+          <div class="font-bold text-sm ${aiRecColor}">${aiRecommendation}</div>
+        </div>
+
+        <!-- Score Cards -->
+        <div class="grid grid-cols-4 gap-3 mb-3">
           <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Fraud Score</div><div class="${c.fraud_score>70?'text-red-600':c.fraud_score>40?'text-amber-600':'text-emerald-600'} font-black text-lg">${(c.fraud_score||0).toFixed(0)}/100</div></div>
           <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Risk Score</div><div class="font-black text-lg text-orange-600">${(c.risk_score||0).toFixed(0)}/100</div></div>
-          <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Suggested Payout</div><div class="font-black text-lg text-indigo-600">$${(c.approved_amount||0).toLocaleString()}</div></div>
+          <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">Confidence</div><div class="font-black text-lg text-blue-600">${(c.confidence_score||0).toFixed(0)}%</div></div>
+          <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100"><div class="text-xs text-gray-500 mb-1">AI Suggested</div><div class="font-black text-lg text-indigo-600">$${(c.approved_amount||0).toLocaleString()}</div></div>
         </div>
-        <div class="flex gap-3">
-          <button onclick="viewClaimDetail(${c.id})" class="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 font-medium py-2.5 rounded-xl transition text-sm">🧠 View AI Report</button>
+
+        ${explainHTML}
+        ${docsHTML}
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 mt-4">
+          <button onclick="viewClaimDetail(${c.id})" class="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 font-medium py-2.5 rounded-xl transition text-sm">🧠 Full AI Report</button>
           <button onclick="decide(${c.id},'approved')" class="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold py-2.5 rounded-xl transition text-sm shadow-lg shadow-emerald-500/20">✓ Approve</button>
           <button onclick="decide(${c.id},'rejected')" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white font-bold py-2.5 rounded-xl transition text-sm shadow-lg shadow-red-500/20">✗ Reject</button>
         </div>
-      </div>`).join('') : '<div class="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm"><p class="text-emerald-600 font-bold">✅ No claims pending review</p></div>';
-  } catch(e) {}
+      </div>`;
+    }).join('');
+  } catch(e) { console.error('Queue error', e); }
 }
 
 async function decide(claimId, decision) {

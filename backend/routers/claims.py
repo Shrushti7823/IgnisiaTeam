@@ -42,6 +42,7 @@ class ClaimOut(BaseModel):
     confidence_score: Optional[float] = 0
     approved_amount: float
     payout_status: str
+    settlement_notes: Optional[str] = None
     stp_eligible: Optional[bool]
     submitted_at: Optional[datetime]
 
@@ -70,11 +71,10 @@ def _run_stp_pipeline_bg(claim_id: int):
 @router.post("/submit", response_model=ClaimOut, status_code=status.HTTP_201_CREATED)
 def submit_claim(
     payload: ClaimSubmit,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Submit a new insurance claim. Pipeline runs in background."""
+    """Submit a new insurance claim. Pipeline is NOT started here — wait for documents first."""
     claim = Claim(
         claim_reference=_generate_reference(),
         user_id=current_user.id,
@@ -90,10 +90,32 @@ def submit_claim(
     db.commit()
     db.refresh(claim)
 
-    # Kick off pipeline asynchronously with its own session
-    background_tasks.add_task(_run_stp_pipeline_bg, claim.id)
+    # Pipeline is NOT started here — user must upload docs first,
+    # then call /trigger-pipeline/{claim_id} to start processing.
 
     return claim
+
+
+@router.post("/trigger-pipeline/{claim_id}")
+def trigger_pipeline(
+    claim_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Trigger the AI processing pipeline after documents have been uploaded."""
+    claim = db.query(Claim).filter(Claim.id == claim_id).first()
+    if not claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    if claim.user_id != current_user.id and current_user.role not in ["admin", "adjuster"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    if claim.current_stage != "submitted":
+        raise HTTPException(status_code=400, detail="Pipeline already started for this claim")
+
+    # Kick off pipeline asynchronously
+    background_tasks.add_task(_run_stp_pipeline_bg, claim.id)
+
+    return {"message": "Pipeline started", "claim_id": claim_id}
 
 
 @router.get("/my", response_model=List[ClaimOut])
@@ -240,7 +262,7 @@ def admin_decide(
     claim = db.query(Claim).filter(Claim.id == claim_id).first()
     if not claim:
         raise HTTPException(status_code=404, detail="Claim not found")
-    if claim.status not in ["manual_review", "submitted"]:
+    if claim.status not in ["manual_review", "submitted", "pending_admin_approval"]:
         raise HTTPException(status_code=400, detail=f"Claim is already in '{claim.status}' state")
 
     claim.status = decision
