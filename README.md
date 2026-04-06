@@ -10,7 +10,6 @@ This project was developed by the following team members:
 
 > AI-Powered · Straight-Through Processing · Fraud Detection · Zero Human Intervention
 
----
 
 
 
