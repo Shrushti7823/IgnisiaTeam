@@ -84,9 +84,9 @@ OR open the index.html directly in browser (double-click the file).
 
 | Role | Email | Password |
 |------|-------|----------|
-| 👤 Policyholder | john@demo.com | Demo@123 |
-| 👤 Policyholder | priya@demo.com | Demo@123 |
-| 🛡️ Admin | admin@claimiq.com | Admin@123 |
+|  Policyholder | john@demo.com | Demo@123 |
+|  Policyholder | priya@demo.com | Demo@123 |
+|  Admin | admin@claimiq.com | Admin@123 |
 
 ---
 
