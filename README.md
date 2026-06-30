@@ -262,4 +262,4 @@ pip install pdfplumber Pillow pytesseract
 
 ---
 
-Built for 24-Hour Hackathon 2024 | ClaimIQ — Smart Claims, Instant Settlements ⚡
+Built for 24-Hour Hackathon | ClaimIQ — Smart Claims, Instant Settlements
